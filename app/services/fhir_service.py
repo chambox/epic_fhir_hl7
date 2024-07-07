@@ -51,6 +51,15 @@ class FhirService(object):
             "Content-Type": "application/json",
             "Accept": "application/json"
         }
+    
+    def get_request(self, url):
+        headers = self.get_request_headers()
+        response = requests.get(url, headers=headers)
+        if response.status_code == 200:
+            return response.json()
+        else:
+            raise FhirServiceApiException(f"Error fetching data from {response.url}: {response.status_code}", response.status_code)
+
 
     def get_aggregate_patient_data(self, patient_id):
         patient_data = {}
@@ -68,24 +77,11 @@ class FhirService(object):
 
     def get_patient(self, patient_id):
         url = f"{Config.EPIC_API_URL}/api/FHIR/R4/Patient/{patient_id}"
-        headers = self.get_request_headers()
-
-        response = requests.get(url, headers=headers)
-        if response.status_code == 200:
-            return response.json()
-        else:
-            # @TODO Log error
-            raise FhirServiceApiException(f"Error fetching data from {response.url}: {response.status_code}", response.status_code)
+        return self.get_request(url)
 
     def get_medication_statement(self, patient_id):
         url = f"{Config.EPIC_API_URL}/api/FHIR/STU3/MedicationStatement?patient={patient_id}"
-        headers = self.get_request_headers()
-
-        response = requests.get(url, headers=headers)
-        if response.status_code == 200:
-            return response.json()
-        else:
-            raise FhirServiceApiException(f"Error fetching data from {response.url}: {response.status_code}", response.status_code)
+        return self.get_request(url)
 
 
 # Service Exception Classes
