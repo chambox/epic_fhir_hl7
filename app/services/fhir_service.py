@@ -2,32 +2,28 @@ import jwt
 import time
 import uuid
 import requests
-from flask import current_app as app
+from config import Config
 
 class FhirService(object):
 
-    config = {}
-
     auth_token = None
 
-    def __init__(self, config) -> None:
-        self.config = config
         
     def authenticate(self):
         payload = {
-            "iss": self.config['EPIC_CLIENT_ID'],
-            "sub": self.config['EPIC_CLIENT_ID'],
-            "aud": self.config['EPIC_API_URL'],
+            "iss": Config.EPIC_CLIENT_ID,
+            "sub": Config.EPIC_CLIENT_ID,
+            "aud": f"{Config.EPIC_API_URL}/oauth2/token",
             "exp": int(time.time()) + 300,
             "jti": str(uuid.uuid4())
         }
 
-        with open(self.config["EPIC_API_PRIVATE_KEY_PATH"], "r") as key_file:
+        with open(Config.EPIC_API_PRIVATE_KEY_PATH, "r") as key_file:
             private_key = key_file.read()
 
         token = jwt.encode(payload, private_key, algorithm="RS256")
 
-        url = self.config['EPIC_API_URL']
+        url = f"{Config.EPIC_API_URL}/oauth2/token"
         headers = {"Content-Type": "application/x-www-form-urlencoded"}
         data = {
             "grant_type": "client_credentials",
@@ -37,6 +33,9 @@ class FhirService(object):
         }
 
         response = requests.post(url, headers=headers, data=data)
+        if response.status_code != 200:
+            raise FhirServiceAuthenticationException(response.content, response.status_code)
+
         res = response.json()
         return res.get('access_token')
     
@@ -68,25 +67,43 @@ class FhirService(object):
         
 
     def get_patient(self, patient_id):
-        url = f"{self.config['EPIC_API_URL']}/api/FHIR/R4/Patient/{patient_id}"
+        url = f"{Config.EPIC_API_URL}/api/FHIR/R4/Patient/{patient_id}"
         headers = self.get_request_headers()
 
         response = requests.get(url, headers=headers)
         if response.status_code == 200:
             return response.json()
         else:
-            # @TODO raise exception
-            # Log error
-            print(f"Error fetching data from {response.url}: {response.status_code}")
-            return None
+            # @TODO Log error
+            raise FhirServiceApiException(f"Error fetching data from {response.url}: {response.status_code}", response.status_code)
 
     def get_medication_statement(self, patient_id):
-        url = f"{self.config['EPIC_API_URL']}/api/FHIR/STU3/MedicationStatement?patient={patient_id}"
+        url = f"{Config.EPIC_API_URL}/api/FHIR/STU3/MedicationStatement?patient={patient_id}"
         headers = self.get_request_headers()
 
         response = requests.get(url, headers=headers)
         if response.status_code == 200:
             return response.json()
         else:
-            print(f"Error fetching data from {response.url}: {response.status_code}")
-            return None
+            raise FhirServiceApiException(f"Error fetching data from {response.url}: {response.status_code}", response.status_code)
+
+
+# Service Exception Classes
+
+class FhirServiceException(Exception):
+    status_code = 500
+
+    def __init__(self, message, status_code=None):
+        super().__init__(message)
+        if status_code is not None:
+            self.status_code = status_code
+        self.message = message
+
+    def to_dict(self):
+        return {"message": self.message}
+
+class FhirServiceAuthenticationException(FhirServiceException):
+    pass
+
+class FhirServiceApiException(FhirServiceException):
+    pass

@@ -1,4 +1,6 @@
+from flask import current_app as app
 from flask_restx import Namespace, Resource, fields
+from app.services.fhir_service import FhirService, FhirServiceAuthenticationException, FhirServiceApiException
 
 api = Namespace("patient", description="Patient related operations")
 
@@ -27,12 +29,19 @@ class PatientList(Resource):
 @api.route("/<id>")
 @api.param("id", "The Patient Identifier")
 @api.response(404, "Patient not Found")
+@api.response(500, "An unexpected error against the EPIC API")
 class Patient(Resource):
     @api.doc("get_patient")
-    @api.marshal_with(patient)
+    #@api.marshal_with(patient)
     def get(self, id):
         """Fetch a patient given its identifier"""
-        for patient in PATIENTS:
-            if patient["id"] == id:
-                return patient
-        api.abort(404)
+
+        try:
+            fs = FhirService()
+            return fs.get_aggregate_patient_data(id)
+        except FhirServiceAuthenticationException as auth_exp:
+            print(auth_exp)
+            return auth_exp.to_dict(), api_exp.status_code
+        except FhirServiceApiException as api_exp:
+            return api_exp.to_dict(), api_exp.status_code
+
