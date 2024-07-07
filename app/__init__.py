@@ -1,7 +1,10 @@
 from flask import Flask
-from app.api.urls import api_blueprint
+from app.api import api
+from werkzeug.middleware.proxy_fix import ProxyFix
 
 def create_app():
     app = Flask(__name__)
-    app.register_blueprint(api_blueprint, url_prefix='/api')
+    app.wsgi_app = ProxyFix(app.wsgi_app)
+    api.init_app(app)
+
     return app
