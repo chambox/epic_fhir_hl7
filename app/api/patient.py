@@ -32,7 +32,7 @@ PATIENTS = [
 ]
 
 
-@api.route("/all")
+@api.route("/list")
 class PatientList(Resource):
     @api.doc("list_patients")
     @api.marshal_list_with(patient_list_model)
