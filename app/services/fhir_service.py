@@ -7,7 +7,6 @@ from config import Config
 class FhirService(object):
 
     auth_token = None
-
         
     def authenticate(self):
         payload = {
