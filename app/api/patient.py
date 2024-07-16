@@ -35,9 +35,12 @@ PATIENTS = [
 @api.route("/list")
 class PatientList(Resource):
     @api.doc("list_patients")
-    @api.marshal_list_with(patient_list_model)
+    #@api.marshal_list_with(patient_list_model)
     def get(self):
         """List of patients via HL7 with their Patient IDs"""
+        fs = FhirService()
+        ids = fs.get_patient_ids()
+        print(ids)
         return {
             "totalCount": len(PATIENTS),
             "items": PATIENTS

@@ -163,3 +163,5 @@ cython_debug/
 
 .pem
 .flaskenv
+partial-spec-events-api.yaml
+schema.py

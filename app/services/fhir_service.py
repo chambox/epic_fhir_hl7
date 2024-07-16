@@ -2,6 +2,7 @@ import jwt
 import time
 import uuid
 import requests
+import urllib.parse
 from config import Config
 
 class FhirService(object):
@@ -28,7 +29,7 @@ class FhirService(object):
             "grant_type": "client_credentials",
             "client_assertion_type": "urn:ietf:params:oauth:client-assertion-type:jwt-bearer",
             "client_assertion": token,
-            "scope": "patient/*" 
+            "scope": "patient/* launch/patient export.any location.read" 
         }
 
         response = requests.post(url, headers=headers, data=data)
@@ -51,11 +52,13 @@ class FhirService(object):
             "Accept": "application/json"
         }
     
-    def get_request(self, url):
-        headers = self.get_request_headers()
+    def get_request(self, url, headers=None, return_response=False):
+        if headers is None:
+            headers = self.get_request_headers()
+
         response = requests.get(url, headers=headers)
-        if response.status_code == 200:
-            return response.json()
+        if response.status_code == 200 or response.status_code == 202:
+            return response if return_response else response.json()
         else:
             raise FhirServiceApiException(f"Error fetching data from {response.url}: {response.status_code}. {response.content}", response.status_code)
 
@@ -82,7 +85,45 @@ class FhirService(object):
         return self.get_request(url)
     
     def get_patient_ids(self):
-        url = f"{Config.EPIC_API_URL}/api/FHIR/R4/Patient?_elements=id"
+        url = f"{Config.EPIC_API_URL}/api/FHIR/R4/Group/{Config.EPIC_FHIR_GROUP_ID}/$export"
+        headers = self.get_request_headers()
+        headers['Prefer'] = "respond-async"
+        headers['Accept'] = "application/fhir+json"
+        response =  self.get_request(url, headers=headers, return_response=True)
+        if response.status_code == 202:
+            return self.listen_bulk_request(response.headers.get('Content-Location'))
+        else:
+            raise FhirServiceApiException(f"Error fetching data from {response.url}: {response.status_code}. {response.content}", response.status_code)
+
+    def listen_bulk_request(self, location):
+        print(location)
+        time.sleep(3)
+        response = self.get_request(location, return_response=True)
+        print(response.status_code)
+        print(response.headers.get('X-Progress'))
+        print(response.content)
+    
+    def search_encounter(self, params):
+        filtered_params = {k: v for k, v in params.items() if v not in [None, '']}
+        qs =  urllib.parse.urlencode(filtered_params)
+
+        url = f"{Config.EPIC_API_URL}/api/FHIR/R4/Encounter?{qs}"
+        return self.get_request(url)
+    
+    def get_encounter(self, encouter, params=None):
+        url = f"{Config.EPIC_API_URL}/api/FHIR/R4/Encounter/{encouter}"
+        #url = f"https://fhir.epic.com/interconnect-fhir-oauth/api/FHIR/R4/Location/eih1L3clnoL-Odea34LokKYlHPndLwGjYudOa4y6QHvk3"
+        return self.get_request(url)
+    
+    def search_organization(self, params):
+        filtered_params = {k: v for k, v in params.items() if v not in [None, '']}
+        qs =  urllib.parse.urlencode(filtered_params)
+
+        url = f"{Config.EPIC_API_URL}/api/FHIR/R4/Organization?{qs}"
+        return self.get_request(url)
+    
+    def get_organization(self, id) :
+        url = f"{Config.EPIC_API_URL}/api/FHIR/R4/Organization/{id}"
         return self.get_request(url)
 
 
