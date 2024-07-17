@@ -42,6 +42,7 @@ class FhirPatient(Model):
         data = {}
         for key in field_paths:
             data[key] = self.get_object_detail(self.rawdata, field_paths[key])
+        data["is_deleted"] = not data["is_deleted"] # should be opposite of active
         
         data['alternative_ids'] = [
             ident.get("value").strip() for ident in self.get_object_detail(self.rawdata, ["identifier"], []) 
