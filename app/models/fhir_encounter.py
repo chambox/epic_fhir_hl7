@@ -171,7 +171,7 @@ class FhirEncounter(Model):
                 })
 
     def _get_adt_message(self):
-        return self.hospital_stays
+        return self.hospital_stays.values()
 
     @staticmethod
     def read_test_data():
