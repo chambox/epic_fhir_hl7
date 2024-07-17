@@ -171,7 +171,17 @@ class FhirEncounter(Model):
                 })
 
     def _get_adt_message(self):
-        return self.hospital_stays
+        ret = []
+        for hospital_id in self.hospital_stays:
+            ds = self.hospital_stays[hospital_id]["department_stays"]
+            del self.hospital_stays[hospital_id]["department_stays"]
+            ret.append({
+                "hospital": self.hospital_stays[hospital_id]['hospital'],
+                "patient": self.hospital_stays[hospital_id]['patient'],
+                "hospital_stay": self.hospital_stays[hospital_id],
+                "department_stays": ds
+            })
+        return ret
 
     @staticmethod
     def read_test_data():
