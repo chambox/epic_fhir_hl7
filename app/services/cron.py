@@ -20,7 +20,7 @@ class CronService(object):
         for encounter in encounters:
             encounter_agreegation = FhirEncounter.extract_factory(encounter)
             if encounter_agreegation:
-                self.data.append(encounter_agreegation)
+                self.data.extend(encounter_agreegation)
 
         return self.data
 
