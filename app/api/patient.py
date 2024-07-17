@@ -1,6 +1,8 @@
 from flask import current_app as app
 from flask_restx import Namespace, Resource, fields
-from app.services.fhir_service import FhirService, FhirServiceAuthenticationException, FhirServiceApiException
+from app.services.fhir import FhirService, FhirServiceAuthenticationException, FhirServiceApiException
+from app.services.cron import CronService
+import json
 
 api = Namespace("patient", description="Patient related operations")
 
@@ -37,10 +39,8 @@ class PatientList(Resource):
     @api.doc("list_patients")
     #@api.marshal_list_with(patient_list_model)
     def get(self):
+
         """List of patients via HL7 with their Patient IDs"""
-        fs = FhirService()
-        ids = fs.get_patient_ids()
-        print(ids)
         return {
             "totalCount": len(PATIENTS),
             "items": PATIENTS

@@ -1,6 +1,7 @@
 from flask import current_app as app
 from flask_restx import Namespace, Resource, fields, reqparse
-from app.services.fhir_service import FhirService, FhirServiceAuthenticationException, FhirServiceApiException
+from app.services.fhir import FhirService, FhirServiceAuthenticationException, FhirServiceApiException
+from app.services.cron import CronService
 
 api = Namespace("encounter", description="Encounter related operations")
 
@@ -10,16 +11,17 @@ parser.add_argument('type')
 
 @api.route("/search")
 class EncounterSearch(Resource):
+    """
     @api.doc(params={
         'patient': 'The ID of the patient',
         'type': "enum {inpatient, outpatient}"
     })
+    """
     #@api.marshal_list_with(patient_list_model)
     def get(self):
-        """Search List of patient encounters given patient id"""
-        data = parser.parse_args()
-        fs = FhirService()
-        return fs.search_encounter(data)
+        """Get a list of encounters by using the BulkRequest Kick-off"""
+        cs = CronService()
+        return cs.start()
 
 
 @api.route("/<id>")

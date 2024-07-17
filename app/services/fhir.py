@@ -4,6 +4,7 @@ import uuid
 import requests
 import urllib.parse
 from config import Config
+import json
 
 class FhirService(object):
 
@@ -84,25 +85,35 @@ class FhirService(object):
         url = f"{Config.EPIC_API_URL}/api/FHIR/STU3/MedicationStatement?patient={patient_id}"
         return self.get_request(url)
     
-    def get_patient_ids(self):
-        url = f"{Config.EPIC_API_URL}/api/FHIR/R4/Group/{Config.EPIC_FHIR_GROUP_ID}/$export"
+    def get_group(self, group_id, _type='Encounter'):
+        url = f"{Config.EPIC_API_URL}/api/FHIR/R4/Group/{group_id}/$export?_type={_type}"
+        print(url)
         headers = self.get_request_headers()
         headers['Prefer'] = "respond-async"
         headers['Accept'] = "application/fhir+json"
         response =  self.get_request(url, headers=headers, return_response=True)
         if response.status_code == 202:
-            return self.listen_bulk_request(response.headers.get('Content-Location'))
+            return response
         else:
             raise FhirServiceApiException(f"Error fetching data from {response.url}: {response.status_code}. {response.content}", response.status_code)
 
     def listen_bulk_request(self, location):
         print(location)
-        time.sleep(3)
+        time.sleep(10)
         response = self.get_request(location, return_response=True)
-        print(response.status_code)
-        print(response.headers.get('X-Progress'))
-        print(response.content)
+        if response.status_code in [200, 202]:
+            print(response.headers);
+            print("\n\n===\n")
+            if 'Searched 0' in response.headers.get('X-Progress', ""):
+                return None
+            else:
+                return response.text
+        else:
+            raise FhirServiceApiException(f"Error fetching data from {response.url}: {response.status_code}. {response.content}", response.status_code)
     
+    def bulk_file_request(self, url):
+        return self.get_request(url, return_response=True)
+
     def search_encounter(self, params):
         filtered_params = {k: v for k, v in params.items() if v not in [None, '']}
         qs =  urllib.parse.urlencode(filtered_params)
@@ -112,7 +123,6 @@ class FhirService(object):
     
     def get_encounter(self, encouter, params=None):
         url = f"{Config.EPIC_API_URL}/api/FHIR/R4/Encounter/{encouter}"
-        #url = f"https://fhir.epic.com/interconnect-fhir-oauth/api/FHIR/R4/Location/eih1L3clnoL-Odea34LokKYlHPndLwGjYudOa4y6QHvk3"
         return self.get_request(url)
     
     def search_organization(self, params):
@@ -124,6 +134,10 @@ class FhirService(object):
     
     def get_organization(self, id) :
         url = f"{Config.EPIC_API_URL}/api/FHIR/R4/Organization/{id}"
+        return self.get_request(url)
+    
+    def get_location(self, id) :
+        url = f"{Config.EPIC_API_URL}/api/FHIR/R4/Location/{id}"
         return self.get_request(url)
 
 
