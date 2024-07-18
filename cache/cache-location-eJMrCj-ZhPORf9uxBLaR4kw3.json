@@ -1,0 +1,51 @@
+{
+    "expires": 1721248878,
+    "value": {
+        "resourceType": "Location",
+        "id": "eJMrCj-ZhPORf9uxBLaR4kw3",
+        "identifier": [
+            {
+                "type": {
+                    "coding": [
+                        {
+                            "system": "http://hl7.org/fhir/sid/us-tin",
+                            "code": "TAX"
+                        }
+                    ],
+                    "text": "Tax ID Number"
+                },
+                "value": "112233445"
+            },
+            {
+                "use": "usual",
+                "system": "urn:oid:1.2.840.114350.1.13.0.1.7.2.696570",
+                "value": "10501"
+            }
+        ],
+        "status": "active",
+        "name": "EHS Clinic",
+        "mode": "instance",
+        "type": [
+            {
+                "coding": [
+                    {
+                        "system": "urn:oid:1.2.840.114350.1.13.0.1.7.10.696570.5002",
+                        "code": "11",
+                        "display": "Office"
+                    }
+                ],
+                "text": "Office"
+            }
+        ],
+        "address": {
+            "line": [
+                "123 Anywhere Street"
+            ],
+            "city": "VERONA",
+            "district": "DANE",
+            "state": "Wisconsin",
+            "postalCode": "53593-9179",
+            "country": "United States of America"
+        }
+    }
+}

@@ -1,0 +1,224 @@
+{
+    "expires": 1721248872,
+    "value": {
+        "resourceType": "Patient",
+        "id": "eIXesllypH3M9tAA5WdJftQ3",
+        "extension": [
+            {
+                "valueCodeableConcept": {
+                    "coding": [
+                        {
+                            "system": "urn:oid:1.2.840.114350.1.13.0.1.7.10.698084.130.657370.19999000",
+                            "code": "female",
+                            "display": "female"
+                        }
+                    ]
+                },
+                "url": "http://open.epic.com/FHIR/StructureDefinition/extension/legal-sex"
+            },
+            {
+                "valueCodeableConcept": {
+                    "coding": [
+                        {
+                            "system": "urn:oid:1.2.840.114350.1.13.0.1.7.10.698084.130.657370.19999000",
+                            "code": "female",
+                            "display": "female"
+                        }
+                    ]
+                },
+                "url": "http://open.epic.com/FHIR/StructureDefinition/extension/sex-for-clinical-use"
+            },
+            {
+                "extension": [
+                    {
+                        "valueCoding": {
+                            "system": "urn:oid:2.16.840.1.113883.6.238",
+                            "code": "2106-3",
+                            "display": "White"
+                        },
+                        "url": "ombCategory"
+                    },
+                    {
+                        "valueString": "White",
+                        "url": "text"
+                    }
+                ],
+                "url": "http://hl7.org/fhir/us/core/StructureDefinition/us-core-race"
+            },
+            {
+                "extension": [
+                    {
+                        "valueString": "Unknown",
+                        "url": "text"
+                    }
+                ],
+                "url": "http://hl7.org/fhir/us/core/StructureDefinition/us-core-ethnicity"
+            },
+            {
+                "valueCode": "248152002",
+                "url": "http://hl7.org/fhir/us/core/StructureDefinition/us-core-sex"
+            },
+            {
+                "valueCodeableConcept": {
+                    "coding": [
+                        {
+                            "system": "http://loinc.org",
+                            "code": "LA29519-8",
+                            "display": "she/her/her/hers/herself"
+                        }
+                    ]
+                },
+                "url": "http://open.epic.com/FHIR/StructureDefinition/extension/calculated-pronouns-to-use-for-text"
+            }
+        ],
+        "identifier": [
+            {
+                "use": "usual",
+                "type": {
+                    "text": "EPIC"
+                },
+                "system": "urn:oid:1.2.840.114350.1.13.0.1.7.5.737384.0",
+                "value": "E4006"
+            },
+            {
+                "use": "usual",
+                "type": {
+                    "text": "EXTERNAL"
+                },
+                "system": "urn:oid:1.2.840.114350.1.13.0.1.7.2.698084",
+                "value": "Z6128"
+            },
+            {
+                "use": "usual",
+                "type": {
+                    "text": "FHIR"
+                },
+                "system": "http://open.epic.com/FHIR/StructureDefinition/patient-dstu2-fhir-id",
+                "value": "TK.0eRuHlZqVxF9Zvim6V5.9w9Flff3iUfwyDbQCnq3UB"
+            },
+            {
+                "use": "usual",
+                "type": {
+                    "text": "FHIR STU3"
+                },
+                "system": "http://open.epic.com/FHIR/StructureDefinition/patient-fhir-id",
+                "value": "eIXesllypH3M9tAA5WdJftQ3"
+            },
+            {
+                "use": "usual",
+                "type": {
+                    "text": "INTERNAL"
+                },
+                "system": "urn:oid:1.2.840.114350.1.13.0.1.7.2.698084",
+                "value": "     Z6128"
+            },
+            {
+                "use": "usual",
+                "type": {
+                    "text": "EPI"
+                },
+                "system": "urn:oid:1.2.840.114350.1.13.0.1.7.5.737384.14",
+                "value": "203712"
+            }
+        ],
+        "active": true,
+        "name": [
+            {
+                "use": "official",
+                "text": "Dr. Linda Jane Ross",
+                "family": "Ross",
+                "given": [
+                    "Linda",
+                    "Jane"
+                ],
+                "prefix": [
+                    "DR."
+                ]
+            },
+            {
+                "use": "usual",
+                "text": "Dr. Linda Jane Ross",
+                "family": "Ross",
+                "given": [
+                    "Linda",
+                    "Jane"
+                ],
+                "prefix": [
+                    "DR."
+                ]
+            },
+            {
+                "use": "old",
+                "text": "ROSS,LINDA",
+                "family": "Ross",
+                "given": [
+                    "Linda"
+                ]
+            }
+        ],
+        "telecom": [
+            {
+                "system": "phone",
+                "value": "231-555-5555",
+                "use": "home"
+            },
+            {
+                "system": "phone",
+                "value": "231-666-6666",
+                "use": "mobile"
+            }
+        ],
+        "gender": "female",
+        "birthDate": "1969-04-27",
+        "deceasedBoolean": false,
+        "address": [
+            {
+                "use": "home",
+                "line": [
+                    "912 Highway 14"
+                ],
+                "city": "CADILLAC",
+                "district": "WEXFORD",
+                "state": "MI",
+                "postalCode": "49601",
+                "country": "US",
+                "period": {
+                    "start": "2019-05-24"
+                }
+            },
+            {
+                "use": "old",
+                "line": [
+                    "912 Highway 14"
+                ],
+                "city": "CADILLAC",
+                "district": "WEXFORD",
+                "state": "MI",
+                "postalCode": "49601",
+                "country": "US"
+            }
+        ],
+        "maritalStatus": {
+            "text": "Divorced"
+        },
+        "communication": [
+            {
+                "language": {
+                    "coding": [
+                        {
+                            "system": "urn:ietf:bcp:47",
+                            "code": "en",
+                            "display": "English"
+                        }
+                    ],
+                    "text": "English"
+                },
+                "preferred": true
+            }
+        ],
+        "managingOrganization": {
+            "reference": "Organization/enRyWnSP963FYDpoks4NHOA3",
+            "display": "Epic Hospital System"
+        }
+    }
+}

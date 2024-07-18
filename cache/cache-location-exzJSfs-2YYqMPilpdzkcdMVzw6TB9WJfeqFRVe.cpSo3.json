@@ -1,0 +1,59 @@
+{
+    "expires": 1721248875,
+    "value": {
+        "resourceType": "Location",
+        "id": "exzJSfs-2YYqMPilpdzkcdMVzw6TB9WJfeqFRVe.cpSo3",
+        "extension": [
+            {
+                "valueCodeableConcept": {
+                    "coding": [
+                        {
+                            "system": "urn:oid:1.2.840.114350.1.13.0.1.7.10.686980.110",
+                            "code": "4",
+                            "display": "Cardiology"
+                        }
+                    ]
+                },
+                "url": "https://open.epic.com/fhir/extensions/specialty"
+            }
+        ],
+        "identifier": [
+            {
+                "use": "usual",
+                "system": "urn:oid:1.2.840.114350.1.13.0.1.7.2.686980",
+                "value": "10501203"
+            }
+        ],
+        "status": "active",
+        "name": "EMC Cardiology Procedures",
+        "mode": "instance",
+        "telecom": [
+            {
+                "system": "phone",
+                "value": "555-555-5555",
+                "rank": 1
+            },
+            {
+                "system": "fax",
+                "value": "555-555-5555"
+            }
+        ],
+        "address": {
+            "line": [
+                "123 Anywhere Street"
+            ],
+            "city": "VERONA",
+            "state": "Wisconsin",
+            "postalCode": "53593-9179",
+            "country": "United States of America"
+        },
+        "managingOrganization": {
+            "reference": "Organization/e8wMbBzuMGvZrYASWBHiL8w3",
+            "display": "EHS Clinic"
+        },
+        "partOf": {
+            "reference": "Location/eJMrCj-ZhPORf9uxBLaR4kw3",
+            "display": "EHS Clinic"
+        }
+    }
+}

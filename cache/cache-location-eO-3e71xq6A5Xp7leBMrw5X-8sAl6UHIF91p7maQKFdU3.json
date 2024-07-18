@@ -1,0 +1,49 @@
+{
+    "expires": 1721248864,
+    "value": {
+        "resourceType": "Location",
+        "id": "eO-3e71xq6A5Xp7leBMrw5X-8sAl6UHIF91p7maQKFdU3",
+        "identifier": [
+            {
+                "use": "usual",
+                "system": "urn:oid:1.2.840.114350.1.13.0.1.7.2.686980",
+                "value": "10101102"
+            }
+        ],
+        "status": "active",
+        "name": "EMH Medical Surgical",
+        "alias": [
+            "MEDSURG",
+            "MED SURG"
+        ],
+        "mode": "instance",
+        "telecom": [
+            {
+                "system": "phone",
+                "value": "555-555-5555",
+                "rank": 1
+            },
+            {
+                "system": "fax",
+                "value": "555-555-5555"
+            }
+        ],
+        "address": {
+            "line": [
+                "123 Anywhere Street"
+            ],
+            "city": "VERONA",
+            "state": "Wisconsin",
+            "postalCode": "53593-9179",
+            "country": "United States of America"
+        },
+        "managingOrganization": {
+            "reference": "Organization/ePqMmiCU9E1xOUefB9e7Plw3",
+            "display": "EHS Hospital"
+        },
+        "partOf": {
+            "reference": "Location/el.Nc4rfzXa7Ml9v6gin1Pw3",
+            "display": "EHS Hospital"
+        }
+    }
+}
