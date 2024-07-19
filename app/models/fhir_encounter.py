@@ -101,7 +101,9 @@ class FhirEncounter(Model):
                             "stay_data": stay_data,
                             "department_stays": []
                         }
-
+                        #@TODO
+                        # Add check to iterate over all saved hospitals to see if hospital reference from partOf is same as hospital 
+                        # from encounter
                         self.department_stays[loc.id]["hospital_id"] = hospital_loc.id
 
 
@@ -187,5 +189,12 @@ class FhirEncounter(Model):
     def read_test_data():
         try:
             return cache_get('encounters')
+        except:
+            return None
+        
+    @staticmethod
+    def read_patient_test_data(patient_id):
+        try:
+            return cache_get(f"patient-encounters-{patient_id}")
         except:
             return None

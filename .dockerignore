@@ -1,0 +1,10 @@
+__pycache__
+.env
+.venv
+*.pyc
+*.pyo
+*.pyd
+.Python
+db.sqlite3
+# *.pem
+.github

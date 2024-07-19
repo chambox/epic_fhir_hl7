@@ -24,6 +24,15 @@ class CronService(object):
 
         return self.data
 
+    def parse_partient_encounters(self,patient_id):
+        encounters = self.fetch_patient_encounters(patient_id)
+        for encounter in encounters:
+            encounter_agreegation = FhirEncounter.extract_factory(encounter)
+            if encounter_agreegation:
+                self.data.extend(encounter_agreegation)
+        return self.data
+    
+    
     def fetch_encounters(self):
         encounters = FhirEncounter.read_test_data()
         if encounters:
@@ -55,4 +64,29 @@ class CronService(object):
             print (f"No of tries {tries}")
             if tries > CronService.MAX_LISTEN_TRIES:
                 listen = False
+                
+    def fetch_patient_encounters(self, patient_id):
+        """Fetches encounters for a specific patient from either test data or live FHIR data."""
+        # First try to fetch test data if available
+        encounters = FhirEncounter.read_patient_test_data(patient_id)
+        if encounters:
+            return encounters
+
+        # If no test data, proceed to fetch from live FHIR service
+        fs = FhirService()
+
+        try:
+            # Directly fetch patient encounters using the patient ID
+            encounters = fs.get_patient_encounters(patient_id)
+            encounters = [entry["resource"] for entry in encounters["entry"]]
+            # Cache the results for performance optimization
+            cache_set(f'patient-encounters-{patient_id}', encounters)
+            return encounters
+        except Exception as e:
+            # Log and handle errors appropriately
+            print(f"Failed to fetch encounters for patient {patient_id}: {str(e)}")
+            return []  # Return an empty list or raise an exception as per your error handling policy
+
+                
+            
 
