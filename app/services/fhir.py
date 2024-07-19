@@ -80,6 +80,10 @@ class FhirService(object):
     def get_patient(self, patient_id):
         url = f"{Config.EPIC_API_URL}/api/FHIR/R4/Patient/{patient_id}"
         return self.get_request(url)
+    
+    def get_patient_encounters(self, patient_id):
+        url = f"{Config.EPIC_API_URL}/api/FHIR/R4/Encounter?patient={patient_id}"
+        return self.get_request(url)
 
     def get_medication_statement(self, patient_id):
         url = f"{Config.EPIC_API_URL}/api/FHIR/STU3/MedicationStatement?patient={patient_id}"

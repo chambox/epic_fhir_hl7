@@ -11,12 +11,6 @@ parser.add_argument('type')
 
 @api.route("/search")
 class EncounterSearch(Resource):
-    """
-    @api.doc(params={
-        'patient': 'The ID of the patient',
-        'type': "enum {inpatient, outpatient}"
-    })
-    """
     #@api.marshal_list_with(patient_list_model)
     def get(self):
         """Get a list of encounters by using the BulkRequest Kick-off"""

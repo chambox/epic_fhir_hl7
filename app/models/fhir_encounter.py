@@ -64,7 +64,7 @@ class FhirEncounter(Model):
             "reason_of_discharge": self.get_object_detail(self.rawdata, ["hospitalization", "dischargeDisposition", "text"])
         }
 
-        encounter_locations = self.get_object_detail(self.rawdata, ["location"])
+        encounter_locations = self.get_object_detail(self.rawdata, ["location"],[])
 
         for location in encounter_locations:
             location_reference = self.get_object_detail(
@@ -90,7 +90,7 @@ class FhirEncounter(Model):
                     "hospital_stay": self.id,
                 }
 
-                # Check the partOf property of hos location if it is a hospital (this overrides any previously deduced hospital)
+                # Check the partOf property of hos location if it is a hospital
                 partof_reference = loc.get_partOf_reference()
                 if partof_reference:
                     hospital_loc = FhirLocation.fetch_by_id(partof_reference)
@@ -101,7 +101,9 @@ class FhirEncounter(Model):
                             "stay_data": stay_data,
                             "department_stays": []
                         }
-
+                        #@TODO
+                        # Add check to iterate over all saved hospitals to see if hospital reference from partOf is same as hospital 
+                        # from encounter
                         self.department_stays[loc.id]["hospital_id"] = hospital_loc.id
 
 
@@ -187,5 +189,12 @@ class FhirEncounter(Model):
     def read_test_data():
         try:
             return cache_get('encounters')
+        except:
+            return None
+        
+    @staticmethod
+    def read_patient_test_data(patient_id):
+        try:
+            return cache_get(f"patient-encounters-{patient_id}")
         except:
             return None

@@ -69,3 +69,25 @@ class Patient(Resource):
         except FhirServiceApiException as api_exp:
             return api_exp.to_dict(), api_exp.status_code
 
+
+
+
+
+@api.route("/encounters/<id>")
+@api.param("id", "The Patient Identifier")
+@api.response(404, "Patient not Found")
+@api.response(500, "An unexpected error against the EPIC API")
+class PatientEncounters(Resource):
+    @api.doc("get_patient_encounters")
+    def get(self, id):
+        """Fetch patient encounters given its identifier"""
+        try:
+            cs = CronService()
+            encounters = cs.parse_partient_encounters(id)  # Assuming you have a method for this
+            return encounters
+        except FhirServiceAuthenticationException as auth_exp:
+            print(auth_exp)
+            return auth_exp.to_dict(), auth_exp.status_code
+        except FhirServiceApiException as api_exp:
+            print(api_exp)
+            return api_exp.to_dict(), api_exp.status_code

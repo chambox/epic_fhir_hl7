@@ -112,6 +112,7 @@ class FhirLocation(Model):
         return len(values) > 0
     
     def is_room(self):
+        # HL7 standard of a room
         _is_room =  self.get_object_detail(self.rawdata, ["encounter_data", "physicalType", "coding", 0, "code"]) == "ro"
         if _is_room:
             loc_ref = self.get_object_detail(self.rawdata, ["encounter_data", "location", "reference"])
@@ -119,6 +120,7 @@ class FhirLocation(Model):
             return FhirLocation.fetch_by_id(loc_id)
 
     def is_bed(self):
+        # HL7 standard of a bed
         _is_bed = self.get_object_detail(self.rawdata, ["encounter_data", "physicalType", "coding", 0, "code"]) == "bd"
         if _is_bed:
             return {

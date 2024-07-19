@@ -1,0 +1,114 @@
+openapi: 3.0.0
+info:
+  title: TNT to EPIC FHIR Integration API
+  version: 1.0.0
+  description: API for integrating Team n Time (TNT) with EPIC's FHIR system.
+servers:
+  - url: 'https://api.yourdomain.com/v1'
+paths:
+  /encounters:
+    get:
+      summary: Retrieves encounters
+      responses:
+        '200':
+          description: A list of encounters
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Encounter'
+components:
+  schemas:
+    Encounter:
+      type: object
+      properties:
+        id:
+          type: string
+          description: The unique identifier for the encounter, mapped from FHIR 'Encounter.id'.
+        status:
+          type: string
+          description: Current status of the encounter, mapped from FHIR 'Encounter.status'.
+        type:
+          type: array
+          items:
+            $ref: '#/components/schemas/CodeableConcept'
+        subject:
+          $ref: '#/components/schemas/Subject'
+        participant:
+          type: array
+          items:
+            $ref: '#/components/schemas/Participant'
+        period:
+          $ref: '#/components/schemas/Period'
+        location:
+          type: array
+          items:
+            $ref: '#/components/schemas/Location'
+    CodeableConcept:
+      type: object
+      properties:
+        text:
+          type: string
+          description: A human-readable description of the concept, mapped from FHIR fields within 'type.coding.text'.
+        coding:
+          type: array
+          items:
+            $ref: '#/components/schemas/Coding'
+    Coding:
+      type: object
+      properties:
+        system:
+          type: string
+          description: The system of the code, mapped from FHIR 'type.coding.system'.
+        code:
+          type: string
+          description: The code itself, mapped from FHIR 'type.coding.code'.
+        display:
+          type: string
+          description: Display text associated with the code, mapped from FHIR 'type.coding.display'.
+    Subject:
+      type: object
+      properties:
+        reference:
+          type: string
+          description: Reference to the patient, mapped from FHIR 'Encounter.subject.reference'.
+        display:
+          type: string
+          description: The display name of the patient, mapped from FHIR 'Encounter.subject.display'.
+    Participant:
+      type: object
+      properties:
+        individual:
+          $ref: '#/components/schemas/Individual'
+        type:
+          $ref: '#/components/schemas/CodeableConcept'
+    Individual:
+      type: object
+      properties:
+        reference:
+          type: string
+          description: Reference to the individual, mapped from FHIR 'participant.individual.reference'.
+        display:
+          type: string
+          description: Display name of the individual, mapped from FHIR 'participant.individual.display'.
+    Period:
+      type: object
+      properties:
+        start:
+          type: string
+          format: date-time
+          description: Start time of the period, mapped from FHIR 'Encounter.period.start'.
+        end:
+          type: string
+          format: date-time
+          description: End time of the period, if available, mapped from FHIR 'Encounter.period.end'.
+    Location:
+      type: object
+      properties:
+        reference:
+          type: string
+          description: Reference of the location, mapped from FHIR 'Encounter.location.location.reference'.
+        display:
+          type: string
+          description: Display name of the location, mapped from FHIR 'Encounter.location.location.display'.
