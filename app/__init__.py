@@ -4,6 +4,7 @@ from app.api.patient import api as patient_ns
 from app.api.encounter import api as encounter_ns
 from app.api.location import api as location_ns
 from app.api.organization import api as organisation_ns
+from app.api.careplan import api as careplan_ns
 from flask_restx import Api
 import os
 from dotenv import load_dotenv
@@ -24,22 +25,26 @@ def create_app():
         SWAGGER_URL,  # Swagger UI endpoint
         API_URL,  # OpenAPI YAML file endpoint
         config={  # Swagger UI configuration options
-            'app_name': "Integrating TNT with EPIC FHIR  API"
+            'app_name': "Integrating TNT with EPIC FHIR API"
         }
     )
 
     app.register_blueprint(swaggerui_blueprint, url_prefix=SWAGGER_URL)
     
     # Create API
-    api = Api(app, version='1.0', title='EPIC FHIR  TNT integration API',
-              description='A simple API to integrate EPIC FHIR with TNT')
+    api = Api(
+        app, 
+        version='1.0', 
+        title='EPIC FHIR  TNT integration API',
+        description='A simple API to integrate EPIC FHIR with TNT'
+    )
 
-
-     #add namespaces
+    # add namespaces
     api.add_namespace(patient_ns, path='/patient')
     api.add_namespace(encounter_ns, path='/encounter')
     api.add_namespace(location_ns, path='/location')
     api.add_namespace(organisation_ns,path='/organisation')
+    api.add_namespace(careplan_ns, path='/careplan')
     
     # Serve the OpenAPI YAML file
     @app.route(API_URL)
