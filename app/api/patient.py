@@ -1,8 +1,10 @@
 from flask import current_app as app
+from flask import Flask, request
 from flask_restx import Namespace, Resource, fields
 from app.services.fhir import FhirService, FhirServiceAuthenticationException, FhirServiceApiException
 from app.services.cron import CronService
 import json
+import hl7
 
 api = Namespace("patient", description="Patient related operations")
 
@@ -24,6 +26,10 @@ patient_list_model = api.model('PatientList', {
     'items': fields.List(fields.Nested(patient), description='List of items')
 })
 
+# Define a model for the HL7 ADT message input
+hl7_adt_model = api.model('HL7ADTMessage', {
+    'adt_message': fields.String(required=True, description='The HL7 ADT message string')
+})
 
 PATIENTS = [
     {"id": "erXuFYUfucBZaryVksYEcMg3"},
@@ -91,3 +97,48 @@ class PatientEncounters(Resource):
         except FhirServiceApiException as api_exp:
             print(api_exp)
             return api_exp.to_dict(), api_exp.status_code
+
+
+@api.route("/hl7/adt")
+@api.expect(hl7_adt_model)
+@api.response(400, "Invalid HL7 ADT message")
+@api.response(500, "An unexpected error occurred")
+class HL7ADTHandler(Resource):
+    @api.doc("process_hl7_adt")
+    def post(self):
+        """Process HL7 ADT message to fetch patient encounters"""
+        try:
+            # Get the HL7 ADT message from the JSON payload
+            data = request.json
+            adt_message = data.get('adt_message')
+            if not adt_message:
+                return {"error": "ADT message is required"}, 400
+            
+            # Replace escaped newline characters with actual newline characters
+            adt_message = adt_message.replace("\\n", "\n")
+            
+            # Parse the HL7 message
+            hl7_message = hl7.parse(adt_message)
+
+            # Debug: Print all segments
+            print("All Segments:")
+            for segment in hl7_message:
+                print(segment)
+                print("Segment Type:",segment[0])
+            
+            # Extract the patient ID (assuming PID segment and patient ID is in a specific field, e.g., PID-3)
+            pid_segment = hl7_message.segment('PID')
+            if pid_segment is None:
+                return {"error": "PID segment not found in the HL7 message"}, 400
+            patient_id = pid_segment[3][0]
+            
+            # Debug: Print the extracted patient ID
+            print("Extracted Patient ID:", patient_id)
+            
+            # Call the existing patient encounters endpoint with the patient ID
+            encounters_resource = PatientEncounters()
+            return encounters_resource.get(patient_id)
+        except Exception as e:
+            print(e)
+            return {"error": str(e)}, 500
+

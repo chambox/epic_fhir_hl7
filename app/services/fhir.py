@@ -30,7 +30,7 @@ class FhirService(object):
             "grant_type": "client_credentials",
             "client_assertion_type": "urn:ietf:params:oauth:client-assertion-type:jwt-bearer",
             "client_assertion": token,
-            "scope": "patient/* launch/patient export.any location.read" 
+            "scope": "patient/* launch/patient export.any location.read careplan.any" 
         }
 
         response = requests.post(url, headers=headers, data=data)
@@ -136,12 +136,23 @@ class FhirService(object):
         url = f"{Config.EPIC_API_URL}/api/FHIR/R4/Organization?{qs}"
         return self.get_request(url)
     
-    def get_organization(self, id) :
+    def get_organization(self, id):
         url = f"{Config.EPIC_API_URL}/api/FHIR/R4/Organization/{id}"
         return self.get_request(url)
     
-    def get_location(self, id) :
+    def get_location(self, id):
         url = f"{Config.EPIC_API_URL}/api/FHIR/R4/Location/{id}"
+        return self.get_request(url)
+
+    def search_careplan(self, params):
+        filtered_params = {k: v for k, v in params.items() if v not in [None, '']}
+        qs =  urllib.parse.urlencode(filtered_params)
+
+        url = f"{Config.EPIC_API_URL}/api/FHIR/R4/CarePlan?{qs}"
+        return self.get_request(url)
+
+    def get_careplan(self, id):
+        url = f"{Config.EPIC_API_URL}/api/FHIR/R4/CarePlan/{id}"
         return self.get_request(url)
 
 
