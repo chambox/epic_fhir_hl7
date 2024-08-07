@@ -1,31 +1,33 @@
-from .model import Model
+from app.dao import Dao
 from app.utils.cache import cache_get, cache_set
 from app.services.fhir import FhirService
+from app.models.patient import Patient
 
-class FhirPatient(Model):
+class EpicPatientDao(Dao):
 
-    def __init__(self, id) -> None:
-        super().__init__(id)
+    def __init__(self) -> None:
+        super().__init__()
     
     @staticmethod
     def fetch_by_id(id):
         key = f"patient-{id}"
-        patient = cache_get(key)
-        if not patient:
+        raw_data = cache_get(key)
+        if not raw_data:
             fs = FhirService()
-            patient = fs.get_patient(id)
-            cache_set(key, patient)
+            raw_data = fs.get_patient(id)
+            cache_set(key, raw_data)
 
-        return FhirPatient.extract_factory(patient)
+        patient = EpicPatientDao.extract_factory(raw_data)
+        if patient.id:
+            return patient
 
 
     @staticmethod
     def extract_factory(rawdata):
-        id = rawdata["id"]
+        dao = EpicPatientDao()
+        dao.set_rawdata(rawdata)
 
-        fp = FhirPatient(id)
-        fp.rawdata = rawdata
-        return fp.get_patient()
+        return dao.get_patient()
     
     def get_patient(self):
 
@@ -49,4 +51,4 @@ class FhirPatient(Model):
             if ident.get("system") != "http://open.epic.com/FHIR/StructureDefinition/patient-dstu2-fhir-id"
         ]
 
-        return data
+        return Patient(data=data)

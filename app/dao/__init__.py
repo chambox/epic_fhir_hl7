@@ -1,8 +1,8 @@
-class Model(object):
+class Dao(object):
 
-    def __init__(self, id=None) -> None:
-        self.id = id
+    def __init__(self) -> None:
         self.rawdata = {}
+        self.model = object()
 
     def get_object_detail(self, _object, field_path, default=None):
         try:
@@ -16,7 +16,10 @@ class Model(object):
     def set_rawdata(self, rawdata):
         self.rawdata = rawdata
     
-    def get_reference_object(self):
-        return {
-            "id": self.id
-        }
+    def set_model(self, model):
+        if "id" in self.rawdata:
+            model.id = self.rawdata["id"]
+            self.model = model
+
+    
+

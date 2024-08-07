@@ -1,5 +1,5 @@
-from .model import Model
-from .fhir_patient import FhirPatient
+from app.models import Model
+from .patient import FhirPatient
 from .fhir_location import FhirLocation
 from app.services.fhir import FhirService
 import json

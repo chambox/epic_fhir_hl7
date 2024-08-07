@@ -1,5 +1,4 @@
-from app.models.model import Model
-
+from app.models import Model
 
 class HospitalReference(Model):
-    id=None
+    pass

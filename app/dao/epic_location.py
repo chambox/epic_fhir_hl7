@@ -1,27 +1,24 @@
-from app.models import Model
+from app.dao import Dao
 from app.utils.cache import cache_get, cache_set
 from app.services.fhir import FhirService
+from app.models.location import Location
+from app.models.bed_reference import BedReference
 import time
-from typing import Dict
 
-class FhirLocation(Model):
+class EpicLocationDao(Dao):
 
-    def __init__(self, id) -> None:
-        super().__init__(id)
-        self.name = None
-        self.status = None
-        self.partOf = None
-        self.period = {}
+    def __init__(self) -> None:
+        super().__init__()
     
     @staticmethod
-    def fetch_by_id(id: str, encounter_data: Dict = {}):
+    def fetch_by_id(id: str, encounter_data: dict = {}):
         """
         Fetch a FHIR location by its ID and associate encounter location data with it.
 
         This method retrieves a FHIR location object based on the provided `id`. If the
         location is not found in the cache, it fetches the location from the FHIR service,
         stores it in the cache, and then associates the provided `encounter_data` with
-        the location before returning it as a `FhirLocation` object.
+        the location before returning it as a `Location` object.
 
         Args:
             id (str): A string referencing the FHIR location.
@@ -29,7 +26,7 @@ class FhirLocation(Model):
                 be associated with the FHIR location. Defaults to an empty dictionary.
 
         Returns:
-            FhirLocation: The FHIR location object with the associated encounter data.
+            Location: The FHIR location object with the associated encounter data.
 
         Raises:
             FhirServiceApiException: If there is an error fetching the location from the FHIR service.
@@ -43,10 +40,10 @@ class FhirLocation(Model):
             cache_set(key, location)
 
         location['encounter_data'] = encounter_data
-        return FhirLocation.extract_factory(location)
+        return EpicLocationDao.extract_factory(location)
 
     @staticmethod
-    def fetch_by_rawdata(encounter_data: Dict = {}):
+    def fetch_by_rawdata(encounter_data: dict = {}):
         """
         Fetch a FHIR location that was returned without a reference over the Encounter entrypoint.
 
@@ -55,7 +52,7 @@ class FhirLocation(Model):
                 be associated with the FHIR location. Defaults to an empty dictionary.
 
         Returns:
-            FhirLocation: The FHIR location object with the associated encounter data.
+            Location: The FHIR location object with the associated encounter data.
         Raises:
             KeyError: The ID of the location could not be deduced
 
@@ -64,15 +61,14 @@ class FhirLocation(Model):
             "id": encounter_data['location']['identifier']['value'],
             "encounter_data": encounter_data
         }
-        return FhirLocation.extract_factory(location)
+        return EpicLocationDao.extract_factory(location)
 
     @staticmethod
     def extract_factory(rawdata):
-        id = rawdata["id"]
-
-        fp = FhirLocation(id)
-        fp.rawdata = rawdata
-        return fp.get_location()
+        dao = EpicLocationDao()
+        dao.set_rawdata(rawdata)
+    
+        return dao.get_location()
     
     def get_location(self):
 
@@ -82,10 +78,6 @@ class FhirLocation(Model):
             "status": ["status"],
             "partOf": ["partOf", "reference"],
             "period": ["period"],
-            "is_department": self._is_department(),
-            "is_hospital": self._is_hospital(),
-            "is_room": self._is_room(),
-            "is_bed": self._is_bed()
         }
 
         defaults = {
@@ -95,9 +87,15 @@ class FhirLocation(Model):
         data = {}
         for key in field_paths:
             data[key] = self.get_object_detail(self.rawdata, field_paths[key], defaults.get(key))
-        
-        self.__dict__.update(data)
-        return self
+
+        data.update({
+            "is_department": self._is_department(),
+            "is_hospital": self._is_hospital(),
+            "is_room": self._is_room(),
+            "is_bed": self._is_bed()
+        })
+
+        return Location(data=data)
     
     def _is_department(self):
         return "managingOrganization" in self.rawdata and "partOf" in self.rawdata
@@ -121,23 +119,10 @@ class FhirLocation(Model):
         if _is_room:
             loc_ref = self.get_object_detail(self.rawdata, ["encounter_data", "location", "reference"])
             loc_id = loc_ref.split("/")[1]
-            return FhirLocation.fetch_by_id(loc_id)
+            return EpicLocationDao.fetch_by_id(loc_id)
 
     def _is_bed(self):
         # HL7 standard of a bed
         _is_bed = self.get_object_detail(self.rawdata, ["encounter_data", "physicalType", "coding", 0, "code"]) == "bd"
         if _is_bed:
-            return {
-                "id": self.get_object_detail(self.rawdata, ["encounter_data", "identifier", "value"])
-            }
-    
-    def get_parent(self):
-        parent_id = self.get_object_detail(self.rawdata, ["partOf", "reference"])
-        if parent_id:
-            return FhirLocation.fetch_by_id(parent_id)
-    
-    def get_partOf_reference(self):
-        if self.partOf:
-            return self.partOf.split("/")[-1]
-            
-        
+            return BedReference(id=self.get_object_detail(self.rawdata, ["encounter_data", "identifier", "value"]))
