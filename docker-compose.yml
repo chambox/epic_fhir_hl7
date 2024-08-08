@@ -1,0 +1,21 @@
+version: '3.5'
+services:
+
+  app:
+    container_name: tfi-app
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: tfi-app:latest
+    restart: always
+    ports:
+        - 5500:5000
+    volumes:
+      - ./cache:/app/cache
+      - ./.env:/app/.env
+    networks:
+      - backnet
+
+networks:
+  backnet:
+    name: tfi_backnet
