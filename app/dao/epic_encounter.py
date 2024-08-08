@@ -4,12 +4,11 @@ from app.dao import Dao
 from app.dao.epic_patient import EpicPatientDao
 from app.dao.epic_location import EpicLocationDao
 from app.models.encounter import Encounter
-from app.models.hospital_stay import HospitalStay, HospitalStayReference
+from app.models.hospital import HospitalStay, HospitalStayReference
 from app.models.bed_reference import BedReference
-from app.models.room_reference import RoomReference
-from app.models.hospital_reference import HospitalReference
-from app.models.department_reference import DeparmentReference
-from app.models.department_stay import DeparmentStay, DeparmentStayLocation
+from app.models.room import RoomReference
+from app.models.hospital import HospitalReference
+from app.models.department import DeparmentStay, DeparmentStayLocation, DeparmentReference
 from app.models import model_to_dict
 
 
@@ -182,7 +181,6 @@ class EpicEncounterDao(Dao):
     def _get_adt_message(self):
         ret = []
         for hospital_id in self.hospital_stays:
-            print(self.hospital_stays[hospital_id].hospital)
             ret.append({
                 "hospital": model_to_dict(self.hospital_stays[hospital_id].hospital),
                 "patient": model_to_dict(self.patient),

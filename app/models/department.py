@@ -5,3 +5,6 @@ class DeparmentStay(Model):
 
 class DeparmentStayLocation(Model):
     pass
+
+class DeparmentReference(Model):
+    pass

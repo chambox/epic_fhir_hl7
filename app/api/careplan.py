@@ -1,7 +1,7 @@
 from flask import current_app as app
 from flask_restx import Namespace, Resource, fields, reqparse
 from app.services.fhir import FhirService, FhirServiceAuthenticationException, FhirServiceApiException
-from app.services.cron import CronService
+from app.dao.epic_careplan import EpicCarePlanDao
 
 api = Namespace("careplan", description="CarePlan related operations")
 
@@ -30,8 +30,8 @@ class CarePlanSearch(Resource):
     })
     def get(self):
         try:
-            fs = FhirService()
-            return fs.search_careplan(parser.parse_args(strict=True))
+            cp_dao =  EpicCarePlanDao()
+            return cp_dao.search_data(parser.parse_args(strict=True))
         except FhirServiceAuthenticationException as auth_exp:
             print(auth_exp)
             return auth_exp.to_dict(), api_exp.status_code
