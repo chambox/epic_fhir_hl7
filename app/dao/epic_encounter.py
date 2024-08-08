@@ -5,7 +5,7 @@ from app.dao.epic_patient import EpicPatientDao
 from app.dao.epic_location import EpicLocationDao
 from app.models.encounter import Encounter
 from app.models.hospital import HospitalStay, HospitalStayReference
-from app.models.bed_reference import BedReference
+from app.models.bed import BedReference
 from app.models.room import RoomReference
 from app.models.hospital import HospitalReference
 from app.models.department import DeparmentStay, DeparmentStayLocation, DeparmentReference
