@@ -9,6 +9,7 @@ class Patient(Model):
         self.date_of_birth = None
         self.gender = None
         self.is_deleted = None
+        self.version = None
 
         super().__init__(id, data)
 

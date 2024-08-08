@@ -2,7 +2,6 @@ class Model(object):
 
     def __init__(self, id=None, data={}) -> None:
         self.id = id
-        self.version = None
         self.set_data(data)
         
     def set_data(self, data_dict):
