@@ -30,8 +30,7 @@ class CarePlanSearch(Resource):
     })
     def get(self):
         try:
-            cp_dao =  EpicCarePlanDao()
-            return cp_dao.search_data(parser.parse_args(strict=True))
+            return EpicCarePlanDao.search_data(parser.parse_args(strict=True))
         except FhirServiceAuthenticationException as auth_exp:
             print(auth_exp)
             return auth_exp.to_dict(), api_exp.status_code

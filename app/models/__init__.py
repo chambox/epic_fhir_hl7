@@ -23,7 +23,7 @@ class Model(object):
     def to_dict(self):
         _dict = self.__dict__
         for key in _dict:
-            _dict[key] = model_to_dict(_dict[key])
+            _dict[key] = model_to_dict(_dict[key], is_lsit=isinstance(_dict[key], list))
         
         return _dict
 

@@ -58,7 +58,7 @@ class EpicEncounterDao(Dao):
             # Get the Patient() given reference as ID
             patient = EpicPatientDao.fetch_by_id(ref)
             if not patient:
-                patient = PatientReference(patient_reference)
+                patient = PatientReference(id=patient_reference)
 
         self.patient = patient
 
