@@ -107,7 +107,7 @@ class EpicCarePlanDao(Dao):
                 if "extension" in activity:
                     value_ref = activity["extension"][0]["valueReference"]
                     reference = value_ref["reference"].split("/")[1]
-                    careplan = fs.get_careplan(reference)
+                    careplan = self._get_care_plan(fs, reference)
                     ca = self._extract_careplan_activity(careplan)
                     if ca:
                         self.activites.append(ca)
@@ -141,5 +141,15 @@ class EpicCarePlanDao(Dao):
 
         if data["id"]:
             return CarePlanActivity(data=data)
+    
+    def _get_care_plan(self, fs: FhirService, reference: str):
+        cache_key = f"careplan-{reference}"
+        data = cache_get(cache_key)
+        if not data:
+            data = fs.get_careplan(reference)
+            cache_set(cache_key, data, 10000)
+        
+        return data
+
 
         
