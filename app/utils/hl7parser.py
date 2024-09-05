@@ -1,7 +1,5 @@
 class hl7parser:
 
-    def __init__(self) -> None:
-        pass
     @staticmethod
     def parse(hl7_message):
         """
@@ -13,9 +11,16 @@ class hl7parser:
         
         Args:
             hl7_message (str): The raw HL7 message string to be parsed.
+            MSH - Message Header
+            MSA - Message Acknowledgement
+            EVN - Event Type
+            PID - Patient Identification
+            PV1 - Patient Visit
+            and others
         
         Returns:
             hl7message: An instance of the `hl7message` class with the parsed segments.
+            
         
         Example:
             hl7_message = '''
@@ -42,6 +47,7 @@ class hl7message:
     def get_segment(self, segment, update=True):
         if hasattr(self, segment):
             return getattr(self, segment)
+
         for s in self.segments:
             if s.startswith(segment):
                 parts = s.split('|')

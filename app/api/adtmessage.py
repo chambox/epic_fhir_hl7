@@ -21,6 +21,7 @@ class AdtMessage(Resource):
         """Receive raw ADT message, process it and return JSON formatted ADT message (from patient encounters, fetched using patient ID)"""
         try:
 
+            #1. Receive Hl7 message
             hl7_message = request.data
             if not hl7_message:
                 return {"error": "ADT message is required"}, 400
@@ -34,11 +35,11 @@ class AdtMessage(Resource):
 
             patient = hl7message.get_patient()
 
-            # Fetch data from epic (@TODO, this an be queued and done in a cron process)
+            #2. Fetch data from epic (@TODO, this an be queued and done in a cron process)
             cs = CronService()
             encounters = cs.parse_partient_encounters(patient['patient_id'])
             
-            # If there is valid data from epic, post the data to TnT
+            #3. If there is valid data from epic, post the data to TnT
             tntservice = TnTService()
             json_request = {
                 "type": "adt",
