@@ -12,7 +12,7 @@ class TnTService(object):
         }
 
         response = requests.post(url, headers=headers, json=json_request)
-        print (response.status_code)
+
         if response.status_code > 204:
             raise TnTServiceException(response.content.decode('utf-8'), response.status_code)
         return response
