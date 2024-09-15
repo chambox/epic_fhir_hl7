@@ -8,7 +8,13 @@ import traceback
 
 api = Namespace("adtmessage", description="ADT Message Operations")
 
+error_model = api.model('ErrorModel', {
+    'error': fields.String(required=True)
+})
+
 @api.route("/hl7")
+@api.param('data', _in="body", contentType="text/plain", default="")
+@api.response(400, 'Bad Request', error_model)
 class AdtMessage(Resource):
     @api.doc("""
         Receive an hl7 message and parse it, then use Patient ID to get encounters.
@@ -16,17 +22,16 @@ class AdtMessage(Resource):
 
         Returns: JSON formatted ADT message (from patient encounters, fetched using patient ID)
     """)
-    #@api.marshal_list_with(patient_list_model)
     def post(self):
         """Receive raw ADT message, process it and return JSON formatted ADT message (from patient encounters, fetched using patient ID)"""
         try:
 
             #1. Receive Hl7 message
-            hl7_message = request.data
+            hl7_message = request.data.decode("utf-8")
             if not hl7_message:
                 return {"error": "ADT message is required"}, 400
 
-            hl7_message = hl7_message.decode("utf-8").replace("\\n", "\n")
+            hl7_message = hl7_message.replace("\\n", "\n")
             hl7message = hl7parser.parse(hl7_message)
 
             pid_segment = hl7message.get_segment('PID')
@@ -36,11 +41,9 @@ class AdtMessage(Resource):
             patient = hl7message.get_patient()
 
             #2. Fetch data from epic (@TODO, this an be queued and done in a cron process)
-            cs = CronService()
-            encounters = cs.parse_partient_encounters(patient['patient_id'])
+            encounters = CronService().parse_partient_encounters(patient['patient_id'])
             
             #3. If there is valid data from epic, post the data to TnT
-            tntservice = TnTService()
             json_request = {
                 "type": "adt",
                 "message_id": None,
@@ -48,8 +51,8 @@ class AdtMessage(Resource):
                 "message_created_at": datetime.now().strftime('%Y-%m-%d %H:%M:%S'),
                 "sending_system_id": None
             }
-            res = tntservice.post_adt_message(json_request=json_request)
 
+            res = TnTService().post_adt_message(json_request=json_request)
             return {"success": f"Data for patient {patient['patient_id']} as been received"}, res.status_code
 
         except TnTServiceException as e:

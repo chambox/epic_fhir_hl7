@@ -65,7 +65,7 @@ class hl7message:
             return None
         else:
             return {
-                'patient_id': self.get_field(pid_segment, 3, 0),
+                'patient_id': self.get_field(pid_segment, 3, 0, self.get_field(pid_segment, 2, 0)),
                 'patient_name': ' '.join(self.get_field(pid_segment, 5, default=[])),
                 'dob': self.get_field(pid_segment, 7, 0),
                 'gender': self.get_field(pid_segment, 8, 0)
