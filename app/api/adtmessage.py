@@ -52,8 +52,12 @@ class AdtMessage(Resource):
                 "sending_system_id": None
             }
 
-            res = TnTService().post_adt_message(json_request=json_request)
-            return {"success": f"Data for patient {patient['patient_id']} as been received"}, res.status_code
+            try:
+                res = TnTService().post_adt_message(json_request=json_request)
+                return {"success": f"Data for patient {patient['patient_id']} as been received", "payload": encounters}, 200  #@TODO use this: res.status_code
+            except TnTServiceException as e:
+                return {"error": e.message}, e.status_code
+
 
         except TnTServiceException as e:
             print("TnTServiceException occured: ", e)
