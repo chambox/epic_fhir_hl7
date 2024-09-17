@@ -2,11 +2,11 @@ from .model import Model
 from app.utils.cache import cache_get, cache_set
 from app.services.fhir import FhirService
 
-class FhirPatient(Model):
 
+class FhirPatient(Model):
     def __init__(self, id) -> None:
         super().__init__(id)
-    
+
     @staticmethod
     def fetch_by_id(id):
         key = f"patient-{id}"
@@ -18,7 +18,6 @@ class FhirPatient(Model):
 
         return FhirPatient.extract_factory(patient)
 
-
     @staticmethod
     def extract_factory(rawdata):
         id = rawdata["id"]
@@ -26,9 +25,8 @@ class FhirPatient(Model):
         fp = FhirPatient(id)
         fp.rawdata = rawdata
         return fp.get_patient()
-    
-    def get_patient(self):
 
+    def get_patient(self):
         field_paths = {
             "id": ["id"],
             "version": ["data", "version"],
@@ -42,11 +40,13 @@ class FhirPatient(Model):
         data = {}
         for key in field_paths:
             data[key] = self.get_object_detail(self.rawdata, field_paths[key])
-        data["is_deleted"] = not data["is_deleted"] # should be opposite of active
-        
-        data['alternative_ids'] = [
-            ident.get("value").strip() for ident in self.get_object_detail(self.rawdata, ["identifier"], []) 
-            if ident.get("system") != "http://open.epic.com/FHIR/StructureDefinition/patient-dstu2-fhir-id"
+        data["is_deleted"] = not data["is_deleted"]  # should be opposite of active
+
+        data["alternative_ids"] = [
+            ident.get("value").strip()
+            for ident in self.get_object_detail(self.rawdata, ["identifier"], [])
+            if ident.get("system")
+            != "http://open.epic.com/FHIR/StructureDefinition/patient-dstu2-fhir-id"
         ]
 
         return data

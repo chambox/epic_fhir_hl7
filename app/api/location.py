@@ -1,6 +1,10 @@
 from flask import current_app as app
 from flask_restx import Namespace, Resource, fields, reqparse
-from app.services.fhir import FhirService, FhirServiceAuthenticationException, FhirServiceApiException
+from app.services.fhir import (
+    FhirService,
+    FhirServiceAuthenticationException,
+    FhirServiceApiException,
+)
 
 api = Namespace("location", description="Location related operations")
 
@@ -10,7 +14,7 @@ api = Namespace("location", description="Location related operations")
 @api.response(404, "Location not Found")
 @api.response(500, "An unexpected error against the EPIC API")
 class Location(Resource):
-    #@api.marshal_with(patient)
+    # @api.marshal_with(patient)
     def get(self, id):
         """Fetch an encouter given its identifier"""
 
@@ -22,4 +26,3 @@ class Location(Resource):
             return auth_exp.to_dict(), api_exp.status_code
         except FhirServiceApiException as api_exp:
             return api_exp.to_dict(), api_exp.status_code
-

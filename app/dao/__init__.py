@@ -1,5 +1,4 @@
 class Dao(object):
-
     def __init__(self) -> None:
         self.rawdata = {}
         self.model = object()
@@ -12,14 +11,11 @@ class Dao(object):
             return value
         except (KeyError, IndexError, TypeError):
             return default
-        
+
     def set_rawdata(self, rawdata):
         self.rawdata = rawdata
-    
+
     def set_model(self, model):
         if "id" in self.rawdata:
             model.id = self.rawdata["id"]
             self.model = model
-
-    
-

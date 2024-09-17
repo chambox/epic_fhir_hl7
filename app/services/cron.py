@@ -4,8 +4,8 @@ from app.dao.epic_encounter import EpicEncounterDao
 from app.utils.cache import cache_set
 import json
 
-class CronService(object):
 
+class CronService(object):
     MAX_LISTEN_TRIES = 5
     data = []
 
@@ -24,47 +24,50 @@ class CronService(object):
 
         return self.data
 
-    def parse_partient_encounters(self,patient_id):
+    def parse_partient_encounters(self, patient_id):
         encounters = self.fetch_patient_encounters(patient_id)
         for encounter in encounters:
             encounter_agreegation = EpicEncounterDao.extract_factory(encounter)
             if encounter_agreegation:
                 self.data.extend(encounter_agreegation)
         return self.data
-    
-    
+
     def fetch_encounters(self):
         encounters = EpicEncounterDao.read_test_data()
         if encounters:
-            #@TODO check if len is not 0
+            # @TODO check if len is not 0
             return encounters
 
         fs = FhirService()
         response = fs.get_group(Config.EPIC_FHIR_GROUP_ID)
         listen = True
         tries = 0
-        while (listen):
-            res = fs.listen_bulk_request(response.headers.get('Content-Location'))
+        while listen:
+            res = fs.listen_bulk_request(response.headers.get("Content-Location"))
             if res is not None and res.strip() not in [""]:
                 obj = json.loads(res)
                 if "output" in obj:
-                    encounter_files = [entry for entry in obj['output'] if entry['type'] == 'Encounter']
+                    encounter_files = [
+                        entry for entry in obj["output"] if entry["type"] == "Encounter"
+                    ]
                     encounter_file = encounter_files[0]
-                    e_res = fs.bulk_file_request(encounter_file['url'])
+                    e_res = fs.bulk_file_request(encounter_file["url"])
 
                     parts = e_res.text.split("\r\n")
 
-                    encounters = [json.loads(p.strip()) for p in parts if p not in [None, '']]
-                    
+                    encounters = [
+                        json.loads(p.strip()) for p in parts if p not in [None, ""]
+                    ]
+
                     # save to file @TODO implement a small database for this
-                    cache_set('encounters', encounters)
+                    cache_set("encounters", encounters)
                     return encounters
 
             tries = tries + 1
-            print (f"No of tries {tries}")
+            print(f"No of tries {tries}")
             if tries > CronService.MAX_LISTEN_TRIES:
                 listen = False
-                
+
     def fetch_patient_encounters(self, patient_id):
         """Fetches encounters for a specific patient from either test data or live FHIR data."""
         # First try to fetch test data if available
@@ -80,13 +83,11 @@ class CronService(object):
             encounters = fs.get_patient_encounters(patient_id)
             encounters = [entry["resource"] for entry in encounters["entry"]]
             # Cache the results for performance optimization
-            cache_set(f'patient-encounters-{patient_id}', encounters)
+            cache_set(f"patient-encounters-{patient_id}", encounters)
             return encounters
         except Exception as e:
             # Log and handle errors appropriately
             print(f"Failed to fetch encounters for patient {patient_id}: {str(e)}")
-            return []  # Return an empty list or raise an exception as per your error handling policy
-
-                
-            
-
+            return (
+                []
+            )  # Return an empty list or raise an exception as per your error handling policy

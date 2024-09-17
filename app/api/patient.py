@@ -1,55 +1,75 @@
 from flask import current_app as app
 from flask import Flask, request
 from flask_restx import Namespace, Resource, fields
-from app.services.fhir import FhirService, FhirServiceAuthenticationException, FhirServiceApiException
+from app.services.fhir import (
+    FhirService,
+    FhirServiceAuthenticationException,
+    FhirServiceApiException,
+)
 from app.services.cron import CronService
 import json
 import hl7
 
 api = Namespace("patient", description="Patient related operations")
 
-patient_data_model = api.model('PatientData', {
-    "patient": fields.Raw(required=True, description="Patient Data as returned from the EPIC /Patient endpoint"),
-    "medication_statement": fields.Raw(required=True, description="Patient Data as returned from the EPIC /MedicalStatement endpoint"),
-})
+patient_data_model = api.model(
+    "PatientData",
+    {
+        "patient": fields.Raw(
+            required=True,
+            description="Patient Data as returned from the EPIC /Patient endpoint",
+        ),
+        "medication_statement": fields.Raw(
+            required=True,
+            description="Patient Data as returned from the EPIC /MedicalStatement endpoint",
+        ),
+    },
+)
 
 patient = api.model(
     "Patient",
     {
         "id": fields.String(required=True, description="The Patient Identifier"),
-        "data": fields.Nested(patient_data_model, required=False, description="EPIC Data"),
+        "data": fields.Nested(
+            patient_data_model, required=False, description="EPIC Data"
+        ),
     },
 )
 
-patient_list_model = api.model('PatientList', {
-    'totalCount': fields.Integer(description='Total number of items'),
-    'items': fields.List(fields.Nested(patient), description='List of items')
-})
+patient_list_model = api.model(
+    "PatientList",
+    {
+        "totalCount": fields.Integer(description="Total number of items"),
+        "items": fields.List(fields.Nested(patient), description="List of items"),
+    },
+)
 
 # Define a model for the HL7 ADT message input
-hl7_adt_model = api.model('HL7ADTMessage', {
-    'adt_message': fields.String(required=True, description='The HL7 ADT message string')
-})
+hl7_adt_model = api.model(
+    "HL7ADTMessage",
+    {
+        "adt_message": fields.String(
+            required=True, description="The HL7 ADT message string"
+        )
+    },
+)
 
 PATIENTS = [
     {"id": "erXuFYUfucBZaryVksYEcMg3"},
     {"id": "eq081-VQEgP8drUUqCWzHfw3"},
     {"id": "eAB3mDIBBcyUKviyzrxsnAw3"},
     {"id": "egqBHVfQlt4Bw3XGXoxVxHg3"},
-    {"id": "eIXesllypH3M9tAA5WdJftQ3"}
+    {"id": "eIXesllypH3M9tAA5WdJftQ3"},
 ]
 
 
 @api.route("/list")
 class PatientList(Resource):
     @api.doc("list_patients")
-    #@api.marshal_list_with(patient_list_model)
+    # @api.marshal_list_with(patient_list_model)
     def get(self):
         """List of patients via HL7 with their Patient IDs"""
-        return {
-            "totalCount": len(PATIENTS),
-            "items": PATIENTS
-        }
+        return {"totalCount": len(PATIENTS), "items": PATIENTS}
 
 
 @api.route("/<id>")
@@ -64,10 +84,7 @@ class Patient(Resource):
 
         try:
             fs = FhirService()
-            return {
-                "id": id,
-                "data": fs.get_aggregate_patient_data(id)
-            }
+            return {"id": id, "data": fs.get_aggregate_patient_data(id)}
         except FhirServiceAuthenticationException as auth_exp:
             print(auth_exp)
             return auth_exp.to_dict(), api_exp.status_code
@@ -85,7 +102,9 @@ class PatientEncounters(Resource):
         """Get JSON formatted ADT message, by searching a patient's Encounters, given the Patient ID"""
         try:
             cs = CronService()
-            encounters = cs.parse_partient_encounters(id)  # Assuming you have a method for this
+            encounters = cs.parse_partient_encounters(
+                id
+            )  # Assuming you have a method for this
             return encounters
         except FhirServiceAuthenticationException as auth_exp:
             print(auth_exp)
@@ -106,13 +125,13 @@ class HL7ADTHandler(Resource):
         try:
             # Get the HL7 ADT message from the JSON payload
             data = request.json
-            adt_message = data.get('adt_message')
+            adt_message = data.get("adt_message")
             if not adt_message:
                 return {"error": "ADT message is required"}, 400
-            
+
             # Replace escaped newline characters with actual newline characters
             adt_message = adt_message.replace("\\n", "\n")
-            
+
             # Parse the HL7 message
             hl7_message = hl7.parse(adt_message)
 
@@ -120,21 +139,20 @@ class HL7ADTHandler(Resource):
             print("All Segments:")
             for segment in hl7_message:
                 print(segment)
-                print("Segment Type:",segment[0])
-            
+                print("Segment Type:", segment[0])
+
             # Extract the patient ID (assuming PID segment and patient ID is in a specific field, e.g., PID-3)
-            pid_segment = hl7_message.segment('PID')
+            pid_segment = hl7_message.segment("PID")
             if pid_segment is None:
                 return {"error": "PID segment not found in the HL7 message"}, 400
             patient_id = pid_segment[3][0]
-            
+
             # Debug: Print the extracted patient ID
             print("Extracted Patient ID:", patient_id)
-            
+
             # Call the existing patient encounters endpoint with the patient ID
             encounters_resource = PatientEncounters()
             return encounters_resource.get(patient_id)
         except Exception as e:
             print(e)
             return {"error": str(e)}, 500
-

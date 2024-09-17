@@ -1,9 +1,8 @@
 from app.models import Model
 
+
 class Patient(Model):
-
     def __init__(self, id=None, data={}) -> None:
-
         self.first_name = None
         self.last_name = None
         self.date_of_birth = None

@@ -1,5 +1,4 @@
 class Model(object):
-
     def __init__(self, id=None) -> None:
         self.id = id
         self.rawdata = {}
@@ -12,11 +11,9 @@ class Model(object):
             return value
         except (KeyError, IndexError, TypeError):
             return default
-        
+
     def set_rawdata(self, rawdata):
         self.rawdata = rawdata
-    
+
     def get_reference_object(self):
-        return {
-            "id": self.id
-        }
+        return {"id": self.id}

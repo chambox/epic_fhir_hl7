@@ -12,7 +12,7 @@ api = Api(
     title="Data Fetch from EPIC (POC)",
     version="1.0",
     description="Fetch data from EPIC and transfer to TnT",
-    prefix="/api"
+    prefix="/api",
 )
 
 # Register namespaces

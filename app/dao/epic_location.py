@@ -5,11 +5,11 @@ from app.models.location import Location
 from app.models.bed import BedReference
 import time
 
-class EpicLocationDao(Dao):
 
+class EpicLocationDao(Dao):
     def __init__(self) -> None:
         super().__init__()
-    
+
     @staticmethod
     def fetch_by_id(id: str, encounter_data: dict = {}):
         """
@@ -39,7 +39,7 @@ class EpicLocationDao(Dao):
             location = fs.get_location(id)
             cache_set(key, location)
 
-        location['encounter_data'] = encounter_data
+        location["encounter_data"] = encounter_data
         return EpicLocationDao.extract_factory(location)
 
     @staticmethod
@@ -58,8 +58,8 @@ class EpicLocationDao(Dao):
 
         """
         location = {
-            "id": encounter_data['location']['identifier']['value'],
-            "encounter_data": encounter_data
+            "id": encounter_data["location"]["identifier"]["value"],
+            "encounter_data": encounter_data,
         }
         return EpicLocationDao.extract_factory(location)
 
@@ -67,11 +67,10 @@ class EpicLocationDao(Dao):
     def extract_factory(rawdata):
         dao = EpicLocationDao()
         dao.set_rawdata(rawdata)
-    
-        return dao.get_location()
-    
-    def get_location(self):
 
+        return dao.get_location()
+
+    def get_location(self):
         field_paths = {
             "id": ["id"],
             "name": ["name"],
@@ -80,49 +79,72 @@ class EpicLocationDao(Dao):
             "period": ["period"],
         }
 
-        defaults = {
-            "period": {}
-        }
+        defaults = {"period": {}}
 
         data = {}
         for key in field_paths:
-            data[key] = self.get_object_detail(self.rawdata, field_paths[key], defaults.get(key))
+            data[key] = self.get_object_detail(
+                self.rawdata, field_paths[key], defaults.get(key)
+            )
 
-        data.update({
-            "is_department": self._is_department(),
-            "is_hospital": self._is_hospital(),
-            "is_room": self._is_room(),
-            "is_bed": self._is_bed()
-        })
+        data.update(
+            {
+                "is_department": self._is_department(),
+                "is_hospital": self._is_hospital(),
+                "is_room": self._is_room(),
+                "is_bed": self._is_bed(),
+            }
+        )
 
         return Location(data=data)
-    
+
     def _is_department(self):
         return "managingOrganization" in self.rawdata and "partOf" in self.rawdata
-    
+
     def _is_hospital(self):
         # @TODO Look for "inpatient" in type > coding
         def is_tax_code(identifier):
-            taxed = [code for code in self.get_object_detail(identifier, ["type", "coding"], []) if code['code'] == "TAX"]
+            taxed = [
+                code
+                for code in self.get_object_detail(identifier, ["type", "coding"], [])
+                if code["code"] == "TAX"
+            ]
             return len(taxed) > 0
-        
+
         values = [
-            ident.get("value").strip() for ident in self.get_object_detail(self.rawdata, ["identifier"], []) 
+            ident.get("value").strip()
+            for ident in self.get_object_detail(self.rawdata, ["identifier"], [])
             if is_tax_code(ident)
         ]
 
         return len(values) > 0
-    
+
     def _is_room(self):
         # HL7 standard of a room
-        _is_room =  self.get_object_detail(self.rawdata, ["encounter_data", "physicalType", "coding", 0, "code"]) == "ro"
+        _is_room = (
+            self.get_object_detail(
+                self.rawdata, ["encounter_data", "physicalType", "coding", 0, "code"]
+            )
+            == "ro"
+        )
         if _is_room:
-            loc_ref = self.get_object_detail(self.rawdata, ["encounter_data", "location", "reference"])
+            loc_ref = self.get_object_detail(
+                self.rawdata, ["encounter_data", "location", "reference"]
+            )
             loc_id = loc_ref.split("/")[1]
             return EpicLocationDao.fetch_by_id(loc_id)
 
     def _is_bed(self):
         # HL7 standard of a bed
-        _is_bed = self.get_object_detail(self.rawdata, ["encounter_data", "physicalType", "coding", 0, "code"]) == "bd"
+        _is_bed = (
+            self.get_object_detail(
+                self.rawdata, ["encounter_data", "physicalType", "coding", 0, "code"]
+            )
+            == "bd"
+        )
         if _is_bed:
-            return BedReference(id=self.get_object_detail(self.rawdata, ["encounter_data", "identifier", "value"]))
+            return BedReference(
+                id=self.get_object_detail(
+                    self.rawdata, ["encounter_data", "identifier", "value"]
+                )
+            )
