@@ -71,7 +71,6 @@ class AdtMessage(Resource):
                         ),
                         "sending_system_id": "None",
                     }
-                    # print(json_request)
                     res = TnTService().post_adt_message(json_request=json_request)
                     responses.append(
                         {

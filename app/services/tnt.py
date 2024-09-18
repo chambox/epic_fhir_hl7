@@ -25,10 +25,6 @@ stream_handler.setFormatter(formatter)
 logger.addHandler(stream_handler)
 
 
-<<<<<<< HEAD
-
-=======
->>>>>>> 5a86c0f (Code formatting)
 class TnTService(object):
     def post_adt_message(self, json_request):
         url = Config.TNT_RECEIVE_ENDPOINT
@@ -43,11 +39,8 @@ class TnTService(object):
             raise TnTServiceException(
                 response.content.decode("utf-8"), response.status_code
             )
-<<<<<<< HEAD
-=======
 
         logger.info(f"Request payload: {json_request}")
->>>>>>> 5a86c0f (Code formatting)
         return response
 
 
