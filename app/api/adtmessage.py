@@ -7,19 +7,20 @@ from datetime import datetime
 import traceback
 import logging
 
+# Configure logging
+logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
-logger.setLevel(logging.INFO)
 
-console_handler = logging.StreamHandler()
-console_handler.setLevel(logging.INFO)
+# Add a file handler
+file_handler = logging.FileHandler("adtmessage.log")
+file_handler.setLevel(logging.INFO)
 
-formatter = logging.Formatter(
-    "%(asctime)s - %(name)s - %(levelname)s - %(filename)s:%(lineno)d - %(message)s"
-)
-console_handler.setFormatter(formatter)
+# Create a formatter
+formatter = logging.Formatter("%(asctime)s - %(name)s - %(levelname)s - %(message)s")
+file_handler.setFormatter(formatter)
 
-logger.addHandler(console_handler)
-
+# Add the file handler to the logger
+logger.addHandler(file_handler)
 api = Namespace("adtmessage", description="ADT Message Operations")
 
 error_model = api.model("ErrorModel", {"error": fields.String(required=True)})
@@ -40,14 +41,12 @@ class AdtMessage(Resource):
     def post(self):
         """Receive raw ADT message, process it and return JSON formatted ADT message (from patient encounters, fetched using patient ID)"""
         try:
-            logger.info(f"Received ADT message: {request.data}")
-            # 1. Receive Hl7 message
+            # 1. Receive HL7 message
             hl7_message = request.data.decode("utf-8")
             if not hl7_message:
                 return {"error": "ADT message is required"}, 400
 
             hl7_message = hl7_message.replace("\\n", "\n")
-            logger.info(f"Parsed HL7 message: {hl7_message}")
             hl7message = hl7parser.parse(hl7_message)
 
             pid_segment = hl7message.get_segment("PID")
@@ -55,34 +54,69 @@ class AdtMessage(Resource):
                 raise hl7messageexception("PID segment not found in the HL7 message")
 
             patient = hl7message.get_patient()
-            logger.info(f"Patient: {patient}")
-            # 2. Fetch data from epic (@TODO, this an be queued and done in a cron process)
+
+            # 2. Fetch data from EPIC
             encounters = CronService().parse_partient_encounters(patient["patient_id"])
 
-            # 3. If there is valid data from epic, post the data to TnT
-            json_request = {
-                "type": "adt",
-                "message_id": None,
-                "payload": encounters,
-                "message_created_at": datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
-                "sending_system_id": None,
-            }
-            try:
-                logger.info(f"Posting ADT message to TnT")
-                res = TnTService().post_adt_message(json_request=json_request)
-                return {
-                    "success": f"Data for patient {patient['patient_id']} as been received",
-                    "payload": encounters,
-                }, 200  # @TODO use this: res.status_code
-            except TnTServiceException as e:
-                logger.error(f"TnTServiceException occured: {e}")
-                return {"error": e.message}, e.status_code
+            # 3. Loop over encounters and post each one
+            responses = []
+            for encounter in encounters:
+                try:
+                    json_request = {
+                        "type": "adt",
+                        "message_id": None,
+                        "payload": encounter,
+                        "message_created_at": datetime.now().strftime(
+                            "%Y-%m-%d %H:%M:%S"
+                        ),
+                        "sending_system_id": "None",
+                    }
+                    # print(json_request)
+                    res = TnTService().post_adt_message(json_request=json_request)
+                    responses.append(
+                        {
+                            "encounter_id": encounter.get("encounter_id"),
+                            "status": "success",
+                            "status_code": res.status_code,
+                        }
+                    )
+                except TnTServiceException as e:
+                    logger.error(
+                        f"TnTServiceException occurred while posting encounter {encounter.get('encounter_id')}: {e}"
+                    )
+                    traceback.print_exc()
+                    responses.append(
+                        {
+                            "encounter_id": encounter.get("encounter_id"),
+                            "status": "failed",
+                            "error": str(e),
+                            "status_code": e.status_code,
+                        }
+                    )
+                except Exception as e:
+                    logger.error(
+                        f"Exception occurred while posting encounter {encounter.get('encounter_id')}: {e}"
+                    )
+                    traceback.print_exc()
+                    responses.append(
+                        {
+                            "encounter_id": encounter.get("encounter_id"),
+                            "status": "failed",
+                            "error": str(e),
+                            "status_code": 400,
+                        }
+                    )
+
+            return {
+                "success": f"Data for patient {patient['patient_id']} has been received and processed",
+                "responses": responses,
+            }, 200
 
         except TnTServiceException as e:
-            logger.error(f"TnTServiceException occured: {e}")
+            logger.error(f"TnTServiceException occurred: {e}")
             traceback.print_exc()
             return e.to_dict(), e.status_code
         except Exception as e:
-            logger.error(f"Exception occured: {e}")
+            logger.error(f"Exception occurred: {e}")
             traceback.print_exc()
             return {"error": str(e)}, 400
