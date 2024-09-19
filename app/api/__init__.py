@@ -9,7 +9,7 @@ from app.api.adtmessage import api as adtmessage_api
 
 # Define API object with entry point
 api = Api(
-    title="Data Fetch from EPIC (POC)",
+    title="Data Fetch from EPIC",
     version="1.0",
     description="Fetch data from EPIC and transfer to TnT",
     prefix="/api",
