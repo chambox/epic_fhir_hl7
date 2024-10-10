@@ -30,8 +30,12 @@ class TnTService(object):
         url = Config.TNT_RECEIVE_ENDPOINT
         headers = {
             "Content-Type": "application/json",
-            "Authorization": f"Bearer {Config.TNT_ACCESS_TOKEN}",
+            "X-Authorization-Scopes": "events.create",  # Add this line
         }
+
+        # Check if TNT_ACCESS_TOKEN is available, if so, use Bearer token
+        if Config.TNT_ACCESS_TOKEN:
+            headers["Authorization"] = f"Bearer {Config.TNT_ACCESS_TOKEN}"
 
         response = requests.post(url, headers=headers, json=json_request)
         logger.info(f"Response from TNT: {response.status_code} - {response.text}")
@@ -40,7 +44,6 @@ class TnTService(object):
                 response.content.decode("utf-8"), response.status_code
             )
 
-        logger.info(f"Request payload: {json_request}")
         return response
 
 

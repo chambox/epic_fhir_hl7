@@ -6,7 +6,13 @@ from app.services.tnt import TnTService, TnTServiceException
 from datetime import datetime
 import traceback
 import logging
-
+import os
+from config import Config
+from app.auth.middleware import auth_required
+import json
+import copy
+from app.utils.sanitizers import sanitize_adt_message
+from app.utils.fake_data import randomize_encounter
 # Configure logging
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
@@ -38,8 +44,8 @@ class AdtMessage(Resource):
         Returns: JSON formatted ADT message (from patient encounters, fetched using patient ID)
     """
     )
+    @auth_required
     def post(self):
-        """Receive raw ADT message, process it and return JSON formatted ADT message (from patient encounters, fetched using patient ID)"""
         try:
             # 1. Receive HL7 message
             hl7_message = request.data.decode("utf-8")
@@ -58,20 +64,32 @@ class AdtMessage(Resource):
             # 2. Fetch data from EPIC
             encounters = CronService().parse_partient_encounters(patient["patient_id"])
 
+            logger.info(f"Fetched {len(encounters)} encounters for patient {patient['patient_id']}")
+
             # 3. Loop over encounters and post each one
             responses = []
+            json_request = None
             for encounter in encounters:
                 try:
+                    if "hospital" in encounter and isinstance(encounter["hospital"], dict):
+                        encounter['hospital_stay']['hospital'] = copy.deepcopy(encounter['hospital'])
+                        encounter["hospital"]["abbreviation"] = Config.HOSPITAL_ABBREVIATION
+
+                    # sanitize the encounter before sending to TNT
+                    encounter = sanitize_adt_message(encounter)
+                    if Config.ENVIRONMENT == "development":
+                        encounter = randomize_encounter(encounter)
+
                     json_request = {
                         "type": "adt",
                         "message_id": None,
                         "payload": encounter,
-                        "message_created_at": datetime.now().strftime(
-                            "%Y-%m-%d %H:%M:%S"
-                        ),
-                        "sending_system_id": "None",
+                        "message_created_at": datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
+                        "sending_system_id": "EPIC",
                     }
+
                     res = TnTService().post_adt_message(json_request=json_request)
+    
                     responses.append(
                         {
                             "encounter_id": encounter.get("encounter_id"),
@@ -93,9 +111,7 @@ class AdtMessage(Resource):
                         }
                     )
                 except Exception as e:
-                    logger.error(
-                        f"Exception occurred while posting encounter {encounter.get('encounter_id')}: {e}"
-                    )
+                    logger.error(f"Error processing encounter {encounter.get('encounter_id')}: {str(e)}")
                     traceback.print_exc()
                     responses.append(
                         {
@@ -106,9 +122,12 @@ class AdtMessage(Resource):
                         }
                     )
 
+            logger.info(f"Processed {len(responses)} encounters")
             return {
                 "success": f"Data for patient {patient['patient_id']} has been received and processed",
                 "responses": responses,
+                "payload": json_request if json_request else {},  # Use an empty dict if json_request is None
+                "adt_message": hl7_message  # Add this line to include the ADT message
             }, 200
 
         except TnTServiceException as e:
@@ -116,6 +135,7 @@ class AdtMessage(Resource):
             traceback.print_exc()
             return e.to_dict(), e.status_code
         except Exception as e:
-            logger.error(f"Exception occurred: {e}")
+            logger.error(f"Exception occurred: {str(e)}")
             traceback.print_exc()
             return {"error": str(e)}, 400
+

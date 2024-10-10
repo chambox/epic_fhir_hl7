@@ -1,6 +1,15 @@
 from app.models import Model
 
+class Room(Model):
+    id: str
+    data: dict
 
-class RoomReference(Model):
-    def __init__(self, id=None, data={}) -> None:
-        super().__init__(id, data)
+    def __init__(self, id: str, data: dict):
+        self.id = id
+        self.data = data
+
+    def to_dict(self):
+        return {
+            "id": self.id,
+            **self.data
+        }

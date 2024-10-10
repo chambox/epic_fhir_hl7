@@ -2,7 +2,7 @@ from app.dao import Dao
 from app.utils.cache import cache_get, cache_set
 from app.services.fhir import FhirService
 from app.models.location import Location
-from app.models.bed import BedReference
+from app.models.bed import Bed
 import time
 
 
@@ -143,7 +143,7 @@ class EpicLocationDao(Dao):
             == "bd"
         )
         if _is_bed:
-            return BedReference(
+            return Bed(
                 id=self.get_object_detail(
                     self.rawdata, ["encounter_data", "identifier", "value"]
                 )

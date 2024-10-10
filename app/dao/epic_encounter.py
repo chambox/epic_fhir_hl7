@@ -1,3 +1,5 @@
+import logging
+
 from app.utils.cache import cache_get, cache_set
 from app.models.patient import PatientReference
 from app.dao import Dao
@@ -5,8 +7,8 @@ from app.dao.epic_patient import EpicPatientDao
 from app.dao.epic_location import EpicLocationDao
 from app.models.encounter import Encounter
 from app.models.hospital import HospitalStay, HospitalStayReference
-from app.models.bed import BedReference
-from app.models.room import RoomReference
+from app.models.bed import Bed
+from app.models.room import Room
 from app.models.hospital import HospitalReference
 from app.models.department import (
     DeparmentStay,
@@ -14,6 +16,10 @@ from app.models.department import (
     DeparmentReference,
 )
 from app.models import model_to_dict
+
+
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger(__name__)
 
 
 class EpicEncounterDao(Dao):
@@ -149,25 +155,19 @@ class EpicEncounterDao(Dao):
 
     def _match_beds_to_rooms(self):
         for bed_id in self.beds:
-            # get the room id were this bed is located by checking
-            # the partOf property of the fhir Location object representing this bed
             room_id = self.beds[bed_id].get_partOf_reference()
-            if room_id:
-                if room_id in self.rooms:
-                    self.room_beds[room_id] = BedReference(
-                        id=bed_id
-                    )  # self.beds[bed_id]["fhir_location"].get_reference_object()
+            if room_id and room_id in self.rooms:
+                bed = Bed(id=bed_id, data=self.beds[bed_id].to_dict())
+                self.room_beds[room_id] = bed
+
 
     def _match_rooms_to_departments(self):
         for room_id in self.rooms:
-            # get the department id were this room is located by checking
-            # the partOf property of the fhir location object representing this room
             department_id = self.rooms[room_id].get_partOf_reference()
-            if department_id:
-                if department_id in self.departments:
-                    self.department_rooms[department_id] = RoomReference(
-                        id=room_id
-                    )  # self.rooms[room_id]["fhir_location"].get_reference_object()
+            if department_id and department_id in self.departments:
+                room = Room(id=room_id, data=self.rooms[room_id].to_dict())
+                self.department_rooms[department_id] = room
+   
 
     def _match_departments_to_hospitals(self, hospital_stay: HospitalStay):
         for department_id in self.departments:
@@ -196,13 +196,10 @@ class EpicEncounterDao(Dao):
                         "department": DeparmentReference(
                             id=department_id
                         ),  # self.departments[department_id]['fhir_location'].get_reference_object(),
-                        "room": room,
-                        "bed": self.room_beds[room.id]
-                        if room is not None and room.id in self.room_beds
-                        else None,
+                        "room": {'id':self.department_rooms.get(department_id)},
+                        "bed": {'id':self.room_beds.get(room.id) if room is not None else None},
                     }
                 )
-
                 self.department_stays[hospital_id].append(
                     DeparmentStay(
                         data={
