@@ -8,7 +8,7 @@ logger = logging.getLogger(__name__)
 logger.setLevel(logging.INFO)
 
 # Create a file handler
-file_handler = logging.FileHandler("tnt_service.log")
+file_handler = logging.FileHandler("logs/tnt_service.log")
 file_handler.setLevel(logging.INFO)
 
 # Create a formatter

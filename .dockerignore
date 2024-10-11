@@ -4,8 +4,11 @@ __pycache__
 *.pyc
 *.pyo
 *.pyd
+*.log
 .Python
 db.sqlite3
 # *.pem
 .github
-cache
+cache/*.json
+.flaskenv
+logs/*.log

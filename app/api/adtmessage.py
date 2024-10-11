@@ -17,7 +17,7 @@ logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
 # Add a file handler
-file_handler = logging.FileHandler("adtmessage.log")
+file_handler = logging.FileHandler("logs/adtmessage.log")
 file_handler.setLevel(logging.INFO)
 
 # Create a formatter
