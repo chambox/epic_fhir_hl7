@@ -2,20 +2,21 @@ version: '3.5'
 services:
 
   app:
-    container_name: tfi-app
+    container_name: epic-tnt-bridge
     build:
       context: .
       dockerfile: Dockerfile
-    image: tfi-app:latest
+    image: epic-tnt-bridge:latest
     restart: always
     ports:
         - 5500:5000
     volumes:
       - ./cache:/app/cache
       - ./.env:/app/.env
+      - ./logs:/app/logs
     networks:
       - backnet
 
 networks:
   backnet:
-    name: tfi_backnet
+    name: etb_backnet
