@@ -1,9 +1,7 @@
 from .model import Model
 from .fhir_patient import FhirPatient
 from .fhir_location import FhirLocation
-from app.services.fhir import FhirService
-import json
-from app.utils.cache import cache_get, cache_set
+from app.utils.cache import cache_get
 from app.models.patient_reference import PatientReference
 
 

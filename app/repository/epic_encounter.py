@@ -1,7 +1,7 @@
 import logging
 
 from app.services.fhir import FhirService
-from app.utils.cache import cache_get, cache_set
+from app.utils.cache import cache_get
 from app.models.patient import PatientReference
 from app.repository import Repository
 from app.repository.epic_patient import EpicPatientRepository
@@ -17,6 +17,7 @@ from app.models.department import (
     DeparmentReference,
 )
 from app.models import model_to_dict
+from config import Config
 
 
 logging.basicConfig(level=logging.INFO)
@@ -241,6 +242,10 @@ class EpicEncounterRepository(Repository):
 
     @staticmethod
     def read_patient_test_data(patient_id):
+        # Do not use test data in production
+        if Config.TNT_ENVIRONMENT == "production":
+            return None
+
         try:
             return cache_get(f"patient-encounters-{patient_id}")
         except:

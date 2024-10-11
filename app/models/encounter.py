@@ -1,6 +1,4 @@
 from app.models import Model
-from app.utils.cache import cache_get, cache_set
-from app.services.fhir import FhirService
 
 
 class Encounter(Model):
