@@ -6,13 +6,12 @@ from app.services.tnt import TnTService, TnTServiceException
 from datetime import datetime
 import traceback
 import logging
-import os
+import time
 from config import Config
-from app.auth.middleware import auth_required
-import json
 import copy
 from app.utils.sanitizers import sanitize_adt_message
 from app.utils.fake_data import randomize_encounter
+
 # Configure logging
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
@@ -44,7 +43,6 @@ class AdtMessage(Resource):
         Returns: JSON formatted ADT message (from patient encounters, fetched using patient ID)
     """
     )
-    @auth_required
     def post(self):
         try:
             # 1. Receive HL7 message
@@ -77,7 +75,7 @@ class AdtMessage(Resource):
 
                     # sanitize the encounter before sending to TNT
                     encounter = sanitize_adt_message(encounter)
-                    if Config.ENVIRONMENT == "development":
+                    if Config.TNT_ENVIRONMENT == "development":
                         encounter = randomize_encounter(encounter)
 
                     json_request = {
@@ -92,7 +90,8 @@ class AdtMessage(Resource):
     
                     responses.append(
                         {
-                            "encounter_id": encounter.get("encounter_id"),
+                            "patient_id": encounter.get('patient').get('id'),
+                            "hospital_stay_id": encounter.get('hospital_stay').get('id'),
                             "status": "success",
                             "status_code": res.status_code,
                         }
@@ -104,7 +103,8 @@ class AdtMessage(Resource):
                     traceback.print_exc()
                     responses.append(
                         {
-                            "encounter_id": encounter.get("encounter_id"),
+                            "patient_id": encounter.get('patient').get('id'),
+                            "hospital_stay_id": encounter.get('hospital_stay').get('id'),
                             "status": "failed",
                             "error": str(e),
                             "status_code": e.status_code,
@@ -115,19 +115,21 @@ class AdtMessage(Resource):
                     traceback.print_exc()
                     responses.append(
                         {
-                            "encounter_id": encounter.get("encounter_id"),
+                            "patient_id": encounter.get('patient').get('id'),
+                            "hospital_stay_id": encounter.get('hospital_stay').get('id'),
                             "status": "failed",
                             "error": str(e),
                             "status_code": 400,
                         }
                     )
 
+                time.sleep(2)
+
             logger.info(f"Processed {len(responses)} encounters")
             return {
                 "success": f"Data for patient {patient['patient_id']} has been received and processed",
                 "responses": responses,
-                "payload": json_request if json_request else {},  # Use an empty dict if json_request is None
-                "adt_message": hl7_message  # Add this line to include the ADT message
+                "adt_message": hl7_message
             }, 200
 
         except TnTServiceException as e:

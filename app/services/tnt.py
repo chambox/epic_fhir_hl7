@@ -34,7 +34,7 @@ class TnTService(object):
         }
 
         # Check if TNT_ACCESS_TOKEN is available, if so, use Bearer token
-        if Config.TNT_ACCESS_TOKEN:
+        if Config.TNT_ENVIRONMENT == "production":
             headers["Authorization"] = f"Bearer {Config.TNT_ACCESS_TOKEN}"
 
         response = requests.post(url, headers=headers, json=json_request)
