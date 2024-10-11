@@ -1,4 +1,4 @@
-from app.dao import Dao
+from app.repository import Repository
 from app.utils.cache import cache_get, cache_set
 from app.services.fhir import FhirService
 from app.models.location import Location
@@ -6,7 +6,7 @@ from app.models.bed import Bed
 import time
 
 
-class EpicLocationDao(Dao):
+class EpicLocationRepository(Repository):
     def __init__(self) -> None:
         super().__init__()
 
@@ -40,7 +40,7 @@ class EpicLocationDao(Dao):
             cache_set(key, location)
 
         location["encounter_data"] = encounter_data
-        return EpicLocationDao.extract_factory(location)
+        return EpicLocationRepository.extract_factory(location)
 
     @staticmethod
     def fetch_by_rawdata(encounter_data: dict = {}):
@@ -61,14 +61,14 @@ class EpicLocationDao(Dao):
             "id": encounter_data["location"]["identifier"]["value"],
             "encounter_data": encounter_data,
         }
-        return EpicLocationDao.extract_factory(location)
+        return EpicLocationRepository.extract_factory(location)
 
     @staticmethod
     def extract_factory(rawdata):
-        dao = EpicLocationDao()
-        dao.set_rawdata(rawdata)
+        repo = EpicLocationRepository()
+        repo.set_rawdata(rawdata)
 
-        return dao.get_location()
+        return repo.get_location()
 
     def get_location(self):
         field_paths = {
@@ -132,7 +132,7 @@ class EpicLocationDao(Dao):
                 self.rawdata, ["encounter_data", "location", "reference"]
             )
             loc_id = loc_ref.split("/")[1]
-            return EpicLocationDao.fetch_by_id(loc_id)
+            return EpicLocationRepository.fetch_by_id(loc_id)
 
     def _is_bed(self):
         # HL7 standard of a bed

@@ -1,4 +1,4 @@
-class Dao(object):
+class Repository(object):
     def __init__(self) -> None:
         self.rawdata = {}
         self.model = object()

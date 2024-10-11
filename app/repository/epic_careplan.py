@@ -1,7 +1,7 @@
 from app.services.fhir import FhirService
 import json, traceback
 from app.utils.cache import cache_get, cache_set
-from app.dao import Dao
+from app.repository import Repository
 from app.models import model_to_dict
 from app.models.patient import PatientReference
 from app.models.careplan import (
@@ -12,7 +12,7 @@ from app.models.careplan import (
 )
 
 
-class EpicCarePlanDao(Dao):
+class EpicCarePlanRepository(Repository):
     def __init__(self) -> None:
         super().__init__()
         self.hospital = None
@@ -32,9 +32,9 @@ class EpicCarePlanDao(Dao):
                 api_data = fs.search_careplan(parameters)
                 cache_set(cache_key, api_data, 10000)
 
-            dao = EpicCarePlanDao()
-            dao.set_rawdata(api_data)
-            return dao.extract_care_message()
+            repo = EpicCarePlanRepository()
+            repo.set_rawdata(api_data)
+            return repo.extract_care_message()
 
         except Exception as e:
             traceback.print_exc()

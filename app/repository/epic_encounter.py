@@ -1,10 +1,11 @@
 import logging
 
+from app.services.fhir import FhirService
 from app.utils.cache import cache_get, cache_set
 from app.models.patient import PatientReference
-from app.dao import Dao
-from app.dao.epic_patient import EpicPatientDao
-from app.dao.epic_location import EpicLocationDao
+from app.repository import Repository
+from app.repository.epic_patient import EpicPatientRepository
+from app.repository.epic_location import EpicLocationRepository
 from app.models.encounter import Encounter
 from app.models.hospital import HospitalStay, HospitalStayReference
 from app.models.bed import Bed
@@ -22,7 +23,7 @@ logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
 
-class EpicEncounterDao(Dao):
+class EpicEncounterRepository(Repository):
     def __init__(self) -> None:
         super().__init__()
         self.rooms = {}
@@ -42,21 +43,21 @@ class EpicEncounterDao(Dao):
 
     @staticmethod
     def extract_factory(rawdata):
-        dao = EpicEncounterDao()
-        dao.set_rawdata(rawdata)
+        repo = EpicEncounterRepository()
+        repo.set_rawdata(rawdata)
 
-        if dao._is_hospital_stay():
+        if repo._is_hospital_stay():
             """
             If this Encounter is seen as a hospital stay, then extract the patient and department info
             and return the extracted ADTMessage
             """
             # Extract Patient
-            dao._extract_patient()
+            repo._extract_patient()
             # Extract Hospital, HospitalStay and DepartmentStay
-            dao._extract_hospital_and_departments()
+            repo._extract_hospital_and_departments()
 
             # return ADTMessage
-            return dao._get_adt_message()
+            return repo._get_adt_message()
 
     def _extract_patient(self):
         patient = None
@@ -67,7 +68,7 @@ class EpicEncounterDao(Dao):
             ref = patient_reference.split("/")[1]
 
             # Get the Patient() given reference as ID
-            patient = EpicPatientDao.fetch_by_id(ref)
+            patient = EpicPatientRepository.fetch_by_id(ref)
             if not patient:
                 patient = PatientReference(id=patient_reference)
 
@@ -107,9 +108,9 @@ class EpicEncounterDao(Dao):
 
             if location_reference:
                 id = location_reference.split("/")[1]
-                loc = EpicLocationDao.fetch_by_id(id, location)
+                loc = EpicLocationRepository.fetch_by_id(id, location)
             else:
-                loc = EpicLocationDao.fetch_by_rawdata(location)
+                loc = EpicLocationRepository.fetch_by_rawdata(location)
 
             if loc.is_hospital and not loc.id in self.hospitals:
                 self.hospitals[loc.id] = loc
@@ -124,7 +125,7 @@ class EpicEncounterDao(Dao):
                 # Check the partOf property of this location if it is a hospital
                 partof_reference = loc.get_partOf_reference()
                 if partof_reference:
-                    hospital_loc = EpicLocationDao.fetch_by_id(partof_reference)
+                    hospital_loc = EpicLocationRepository.fetch_by_id(partof_reference)
                     if (
                         hospital_loc.is_hospital
                         and not hospital_loc.id in self.hospitals
@@ -244,3 +245,8 @@ class EpicEncounterDao(Dao):
             return cache_get(f"patient-encounters-{patient_id}")
         except:
             return None
+    
+    @staticmethod
+    def read_patient_data(patient_id):
+        fs = FhirService()
+        return fs.get_patient_encounters(patient_id)

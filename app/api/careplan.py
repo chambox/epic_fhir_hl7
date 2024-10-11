@@ -5,7 +5,7 @@ from app.services.fhir import (
     FhirServiceAuthenticationException,
     FhirServiceApiException,
 )
-from app.dao.epic_careplan import EpicCarePlanDao
+from app.repository.epic_careplan import EpicCarePlanRepository
 
 api = Namespace("careplan", description="CarePlan related operations")
 
@@ -48,7 +48,7 @@ class CarePlanSearch(Resource):
     )
     def get(self):
         try:
-            return EpicCarePlanDao.search_data(parser.parse_args(strict=True))
+            return EpicCarePlanRepository.search_data(parser.parse_args(strict=True))
         except FhirServiceAuthenticationException as auth_exp:
             print(auth_exp)
             return auth_exp.to_dict(), api_exp.status_code

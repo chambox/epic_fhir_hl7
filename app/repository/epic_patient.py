@@ -1,10 +1,10 @@
-from app.dao import Dao
+from app.repository import Repository
 from app.utils.cache import cache_get, cache_set
 from app.services.fhir import FhirService
 from app.models.patient import Patient
 
 
-class EpicPatientDao(Dao):
+class EpicPatientRepository(Repository):
     def __init__(self) -> None:
         super().__init__()
 
@@ -17,16 +17,16 @@ class EpicPatientDao(Dao):
             raw_data = fs.get_patient(id)
             cache_set(key, raw_data)
 
-        patient = EpicPatientDao.extract_factory(raw_data)
+        patient = EpicPatientRepository.extract_factory(raw_data)
         if patient.id:
             return patient
 
     @staticmethod
     def extract_factory(rawdata):
-        dao = EpicPatientDao()
-        dao.set_rawdata(rawdata)
+        repo = EpicPatientRepository()
+        repo.set_rawdata(rawdata)
 
-        return dao.get_patient()
+        return repo.get_patient()
 
     def get_patient(self):
         field_paths = {

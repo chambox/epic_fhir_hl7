@@ -1,6 +1,6 @@
 from .fhir import FhirService
 from config import Config
-from app.dao.epic_encounter import EpicEncounterDao
+from app.repository.epic_encounter import EpicEncounterRepository
 from app.utils.cache import cache_set
 import json
 
@@ -18,7 +18,7 @@ class CronService(object):
     def parse_encounters(self):
         encounters = self.fetch_encounters()
         for encounter in encounters:
-            encounter_agreegation = EpicEncounterDao.extract_factory(encounter)
+            encounter_agreegation = EpicEncounterRepository.extract_factory(encounter)
             if encounter_agreegation:
                 self.data.extend(encounter_agreegation)
 
@@ -27,13 +27,13 @@ class CronService(object):
     def parse_partient_encounters(self, patient_id):
         encounters = self.fetch_patient_encounters(patient_id)
         for encounter in encounters:
-            encounter_agreegation = EpicEncounterDao.extract_factory(encounter)
+            encounter_agreegation = EpicEncounterRepository.extract_factory(encounter)
             if encounter_agreegation:
                 self.data.extend(encounter_agreegation)
         return self.data
 
     def fetch_encounters(self):
-        encounters = EpicEncounterDao.read_test_data()
+        encounters = EpicEncounterRepository.read_test_data()
         if encounters:
             # @TODO check if len is not 0
             return encounters
@@ -71,16 +71,14 @@ class CronService(object):
     def fetch_patient_encounters(self, patient_id):
         """Fetches encounters for a specific patient from either test data or live FHIR data."""
         # First try to fetch test data if available
-        encounters = EpicEncounterDao.read_patient_test_data(patient_id)
+        encounters = EpicEncounterRepository.read_patient_test_data(patient_id)
         if encounters:
             return encounters
 
         # If no test data, proceed to fetch from live FHIR service
-        fs = FhirService()
-
         try:
             # Directly fetch patient encounters using the patient ID
-            encounters = fs.get_patient_encounters(patient_id)
+            encounters = EpicEncounterRepository.read_patient_data(patient_id)
             encounters = [entry["resource"] for entry in encounters["entry"]]
             # Cache the results for performance optimization
             cache_set(f"patient-encounters-{patient_id}", encounters)

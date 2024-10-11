@@ -6,10 +6,10 @@ class Location(Model):
         super().__init__(id, data)
 
     def get_parent(self):
-        from app.dao.epic_location import EpicLocationDao
+        from app.repository.epic_location import EpicLocationRepository
 
         if self.partOf:
-            return EpicLocationDao.fetch_by_id(self.partOf)
+            return EpicLocationRepository.fetch_by_id(self.partOf)
 
     def get_partOf_reference(self):
         if self.partOf:
